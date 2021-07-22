@@ -27,6 +27,174 @@
       </tags>
   </entry>
   <entry>
+    <title>Docker常用命令</title>
+    <url>/2021/07/22/Docker%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<p><strong>平时docker使用过程中会有用到日常的一些命令，记录一下。</strong></p>
+<span id="more"></span>
+
+<h3 id="1-帮助命令"><a href="#1-帮助命令" class="headerlink" title="1.帮助命令"></a>1.帮助命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">1.docker version #显示docker的版本信息。</span><br><span class="line">2.docker info #显示docker的系统信息，包括镜像和容器的数量</span><br><span class="line">3.docker [命令] --help #帮助命令 #帮助文档的地址:https://docs.docker.com/engine/reference/commandline/build/</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="2-镜像命令"><a href="#2-镜像命令" class="headerlink" title="2.镜像命令"></a>2.镜像命令</h3><h4 id="2-1-docker-images"><a href="#2-1-docker-images" class="headerlink" title="2.1 docker images"></a>2.1 docker images</h4><ul>
+<li><p>列出本地镜像</p>
+<h5 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker images [OPTIONS] [REPOSITORY[:TAG]]</span><br></pre></td></tr></table></figure>
+
+<h5 id="OPTIONS说明："><a href="#OPTIONS说明：" class="headerlink" title="OPTIONS说明："></a>OPTIONS说明：</h5><ul>
+<li>-a :列出本地所有的镜像（含中间映像层，默认情况下，过滤掉中间映像层）</li>
+<li>–digests :显示镜像的摘要信息</li>
+<li>-f :显示满足条件的镜像</li>
+<li>–format :指定返回值的模板文件</li>
+<li>–no-trunc :显示完整的镜像信息</li>
+<li>-q :只显示镜像ID</li>
+</ul>
+<h5 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">➜ docker images  or docker image ls #列出</span><br><span class="line">REPOSITORY(镜像的仓库源)   TAG(镜像的标签)       IMAGE ID (镜像的id)      CREATED (镜像的创建时间)      SIZE(镜像的大小)</span><br><span class="line">mysql                    latest               c8562eaf9d81           7 weeks ago                 546MB</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="2-2-docker-pull"><a href="#2-2-docker-pull" class="headerlink" title="2.2 docker pull"></a>2.2 docker pull</h4><ul>
+<li><p>从镜像仓库中拉取或者更新指定镜像</p>
+<h5 id="语法-1"><a href="#语法-1" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull [OPTIONS] NAME[:TAG|@DIGEST]</span><br></pre></td></tr></table></figure>
+
+<h5 id="OPTIONS说明：-1"><a href="#OPTIONS说明：-1" class="headerlink" title="OPTIONS说明："></a>OPTIONS说明：</h5><ul>
+<li>-a :拉取所有 tagged 镜像</li>
+<li>–disable-content-trust :忽略镜像的校验,默认开启</li>
+</ul>
+<h5 id="实例-1"><a href="#实例-1" class="headerlink" title="实例"></a>实例</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 下载镜像 docker pull 镜像名[:tag]</span></span><br><span class="line">➜ docker pull tomcat:8</span><br><span class="line">8: Pulling from library/tomcat #如果不写tag，默认就是latest</span><br><span class="line"><span class="meta">#</span><span class="bash">分层下载: docker image 的核心 联合文件系统</span></span><br><span class="line">90fe46dd8199: Already exists</span><br><span class="line">35a4f1977689: Already exists</span><br><span class="line">bbc37f14aded: Already exists</span><br><span class="line">74e27dc593d4: Already exists</span><br><span class="line">93a01fbfad7f: Already exists</span><br><span class="line">1478df405869: Pull complete</span><br><span class="line">64f0dd11682b: Pull complete</span><br><span class="line">68ff4e050d11: Pull complete</span><br><span class="line">f576086003cf: Pull complete</span><br><span class="line">3b72593ce10e: Pull complete</span><br><span class="line">Digest: sha256:0c6234e7ec9d10ab32c06423ab829b32e3183ba5bf2620ee66de866df640a027</span><br><span class="line"><span class="meta">#</span><span class="bash"> 签名 防伪</span></span><br><span class="line">Status: Downloaded newer image for tomcat:8 docker.io/library/tomcat:8 #真实地址</span><br><span class="line"><span class="meta">#</span><span class="bash">等价于</span></span><br><span class="line">docker pull tomcat:8</span><br><span class="line">docker pull docker.io/library/tomcat:8</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="2-3-docker-rmi"><a href="#2-3-docker-rmi" class="headerlink" title="2.3 docker rmi"></a>2.3 docker rmi</h4><ul>
+<li> 删除本地一个或多少镜像</li>
+</ul>
+<h5 id="语法-2"><a href="#语法-2" class="headerlink" title="语法"></a>语法</h5>  <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker rmi [OPTIONS] IMAGE [IMAGE...]</span><br></pre></td></tr></table></figure>
+
+<h5 id="OPTIONS说明：-2"><a href="#OPTIONS说明：-2" class="headerlink" title="OPTIONS说明："></a>OPTIONS说明：</h5><ul>
+<li>-f :强制删除</li>
+<li>–no-prune :不移除该镜像的过程镜像，默认移除</li>
+</ul>
+<h5 id="实例："><a href="#实例：" class="headerlink" title="实例："></a>实例：</h5>  <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">➜ docker rmi -f 镜像id #删除指定的镜像</span><br><span class="line">➜ docker rmi -f $(docker images -aq) #删除全部的镜像</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-容器命令"><a href="#3-容器命令" class="headerlink" title="3.容器命令"></a>3.容器命令</h3><h4 id="3-1-docker-run"><a href="#3-1-docker-run" class="headerlink" title="3.1 docker run"></a>3.1 docker run</h4><ul>
+<li><p>创建一个新的容器并运行一个命令</p>
+<h5 id="语法-3"><a href="#语法-3" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run [OPTIONS] IMAGE [COMMAND] [ARG...]</span><br></pre></td></tr></table></figure>
+
+<h5 id="OPTIONS说明：-3"><a href="#OPTIONS说明：-3" class="headerlink" title="OPTIONS说明："></a>OPTIONS说明：</h5><ul>
+<li>-a stdin: 指定标准输入输出内容类型，可选 STDIN/STDOUT/STDERR 三项</li>
+<li>-d: 后台运行容器，并返回容器ID</li>
+<li>-i: 以交互模式运行容器，通常与 -t 同时使用</li>
+<li>-t: 为容器重新分配一个伪输入终端，通常与 -i 同时使用</li>
+<li>-P: 随机端口映射，容器内部端口随机映射到主机的端口</li>
+<li>-p: 指定端口映射，格式为：主机(宿主)端口:容器端口</li>
+<li>–name=”nginx-lb”: 为容器指定一个名称</li>
+<li>–dns 8.8.8.8: 指定容器使用的DNS服务器，默认和宿主一致</li>
+<li>-h “mars”: 指定容器的hostname</li>
+<li>-e username=”ritchie”: 设置环境变量</li>
+<li>–env-file=[]: 从指定文件读入环境变量</li>
+<li>–cpuset=”0-2” or –cpuset=”0,1,2”: 绑定容器到指定CPU运行</li>
+<li>-m : 设置容器使用内存最大值</li>
+<li>–net=”bridge”: 指定容器的网络连接类型，支持 bridge/host/none/container: 四种类型</li>
+<li>–link=[]: 添加链接到另一个容器</li>
+<li>–expose=[]: 开放一个端口或一组端口</li>
+<li>–volume , -v: 绑定一个卷</li>
+</ul>
+<h5 id="实例：-1"><a href="#实例：-1" class="headerlink" title="实例："></a>实例：</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">使用docker镜像nginx:latest以后台模式启动一个容器,并将容器命名为mynginx。</span></span><br><span class="line">➜ docker run --name mynginx -d nginx:latest</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">使用镜像 nginx:latest，以后台模式启动一个容器,将容器的 80 端口映射到主机的 80 端口,主机的目录 /data 映射到容器的 /data。</span></span><br><span class="line">➜ docker run -p 80:80 -v /data:/data -d nginx:latest</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">使用镜像nginx:latest以交互模式启动一个容器,在容器内执行/bin/bash命令。</span></span><br><span class="line">➜ docker run -it nginx:latest /bin/bash</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="3-2-docker-ps"><a href="#3-2-docker-ps" class="headerlink" title="3.2 docker ps"></a>3.2 docker ps</h4><ul>
+<li><p>列出容器</p>
+<h5 id="语法-4"><a href="#语法-4" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker ps [OPTIONS]</span><br></pre></td></tr></table></figure>
+
+<h5 id="OPTIONS说明：-4"><a href="#OPTIONS说明：-4" class="headerlink" title="OPTIONS说明："></a>OPTIONS说明：</h5><ul>
+<li>-a :显示所有的容器，包括未运行的</li>
+<li>-n :列出最近创建的n个容器</li>
+<li>-q :静默模式，只显示容器编号</li>
+<li>-s :显示总的文件大小</li>
+</ul>
+<h5 id="实例：-2"><a href="#实例：-2" class="headerlink" title="实例："></a>实例：</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">列出所有在运行的容器信息</span></span><br><span class="line">➜ docker ps</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">列出最近创建的5个容器信息</span></span><br><span class="line">➜ docker ps -n 5</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">列出所有创建的容器ID</span></span><br><span class="line">➜ docker ps -a -q</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="3-3-docker-rm"><a href="#3-3-docker-rm" class="headerlink" title="3.3 docker rm"></a>3.3 docker rm</h4><ul>
+<li><p>删除一个或多个容器</p>
+<h5 id="语法-5"><a href="#语法-5" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker rm [OPTIONS] CONTAINER [CONTAINER...]</span><br></pre></td></tr></table></figure>
+
+<h5 id="OPTIONS说明：-5"><a href="#OPTIONS说明：-5" class="headerlink" title="OPTIONS说明："></a>OPTIONS说明：</h5><ul>
+<li>-f :通过 SIGKILL 信号强制删除一个运行中的容器</li>
+<li>-l :移除容器间的网络连接，而非容器本身</li>
+<li>-v :删除与容器关联的卷</li>
+</ul>
+<h5 id="实例：-3"><a href="#实例：-3" class="headerlink" title="实例："></a>实例：</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">强制删除容器 db01、db02</span></span><br><span class="line">➜ docker rm -f db01 db02</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">删除容器 nginx01, 并删除容器挂载的数据卷</span></span><br><span class="line">➜ docker rm -v nginx01</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">删除所有已经停止的容器</span></span><br><span class="line">➜ docker rm $(docker ps -a -q)</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="3-4-docker-exec"><a href="#3-4-docker-exec" class="headerlink" title="3.4 docker exec"></a>3.4 docker exec</h4><ul>
+<li><p>在运行的容器中执行命令</p>
+<h5 id="语法-6"><a href="#语法-6" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker exec [OPTIONS] CONTAINER COMMAND [ARG...]</span><br></pre></td></tr></table></figure>
+
+<h5 id="OPTIONS说明：-6"><a href="#OPTIONS说明：-6" class="headerlink" title="OPTIONS说明："></a>OPTIONS说明：</h5><ul>
+<li>-d :分离模式: 在后台运行</li>
+<li>-i :即使没有附加也保持STDIN 打开</li>
+<li>-t :分配一个伪终端</li>
+</ul>
+<h5 id="实例：-4"><a href="#实例：-4" class="headerlink" title="实例："></a>实例：</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">在容器 mynginx 中以交互模式执行容器内 /root/runoob.sh 脚本:</span></span><br><span class="line">➜ docker exec -it mynginx /bin/sh /root/runoob.sh</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">在容器 mynginx 中开启一个交互模式的终端</span></span><br><span class="line">➜ docker exec -it  mynginx /bin/bash</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">通过 <span class="built_in">exec</span> 命令对指定的容器执行 bash</span></span><br><span class="line">➜ docker exec -it 9df70f9a0714 /bin/bash</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="3-5-docker-inspect"><a href="#3-5-docker-inspect" class="headerlink" title="3.5 docker inspect"></a>3.5 docker inspect</h4><ul>
+<li><p>获取容器/镜像的元数据</p>
+<h5 id="语法-7"><a href="#语法-7" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker inspect [OPTIONS] NAME|ID [NAME|ID...]</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="OPTIONS说明：-7"><a href="#OPTIONS说明：-7" class="headerlink" title="OPTIONS说明："></a>OPTIONS说明：</h5><ul>
+<li>-f :指定返回值的模板文件</li>
+<li>-s :显示总的文件大小</li>
+<li>–type :为指定类型返回JSON</li>
+</ul>
+<h5 id="实例：-5"><a href="#实例：-5" class="headerlink" title="实例："></a>实例：</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">获取镜像mysql:5.6的元信息</span></span><br><span class="line">➜ docker inspect mysql:5.6</span><br><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        &quot;Id&quot;: &quot;sha256:2c0964ec182ae9a045f866bbc2553087f6e42bfc16074a74fb820af235f070ec&quot;,</span><br><span class="line">        &quot;RepoTags&quot;: [</span><br><span class="line">            &quot;mysql:5.6&quot;</span><br><span class="line">        ],</span><br><span class="line">        &quot;RepoDigests&quot;: [],</span><br><span class="line">        &quot;Parent&quot;: &quot;&quot;,</span><br><span class="line">        &quot;Comment&quot;: &quot;&quot;,</span><br><span class="line">        &quot;Created&quot;: &quot;2016-05-24T04:01:41.168371815Z&quot;,</span><br><span class="line">        &quot;Container&quot;: &quot;e0924bc460ff97787f34610115e9363e6363b30b8efa406e28eb495ab199ca54&quot;,</span><br><span class="line">        &quot;ContainerConfig&quot;: &#123;</span><br><span class="line">            &quot;Hostname&quot;: &quot;b0cf605c7757&quot;,</span><br><span class="line">            &quot;Domainname&quot;: &quot;&quot;,</span><br><span class="line">            &quot;User&quot;: &quot;&quot;,</span><br><span class="line">            &quot;AttachStdin&quot;: false,</span><br><span class="line">            &quot;AttachStdout&quot;: false,</span><br><span class="line">            &quot;AttachStderr&quot;: false,</span><br><span class="line">            &quot;ExposedPorts&quot;: &#123;</span><br><span class="line">                &quot;3306/tcp&quot;: &#123;&#125;</span><br><span class="line">            &#125;,</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">获取正在运行的容器mymysql的 IP</span></span><br><span class="line">➜ docker inspect --format=&#x27;&#123;&#123;range .NetworkSettings.Networks&#125;&#125;&#123;&#123;.IPAddress&#125;&#125;&#123;&#123;end&#125;&#125;&#x27; mymysql</span><br><span class="line">172.17.0.3</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="3-6-docker-logs"><a href="#3-6-docker-logs" class="headerlink" title="3.6 docker logs"></a>3.6 docker logs</h4><ul>
+<li><p>获取容器的日志</p>
+<h5 id="语法-8"><a href="#语法-8" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker logs [OPTIONS] CONTAINER</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="OPTIONS说明：-8"><a href="#OPTIONS说明：-8" class="headerlink" title="OPTIONS说明："></a>OPTIONS说明：</h5><ul>
+<li>-f : 跟踪日志输出</li>
+<li>–since :显示某个开始时间的所有日志</li>
+<li>-t : 显示时间戳</li>
+<li>–tail :仅列出最新N条容器日志</li>
+</ul>
+<h5 id="实例：-6"><a href="#实例：-6" class="headerlink" title="实例："></a>实例：</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">跟踪查看容器mynginx的日志输出</span></span><br><span class="line">➜ docker logs -f mynginx</span><br><span class="line">192.168.239.1 - - [10/Jul/2016:16:53:33 +0000] &quot;GET / HTTP/1.1&quot; 200 612 &quot;-&quot; &quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36&quot; &quot;-&quot;</span><br><span class="line">2016/07/10 16:53:33 [error] 5#5: *1 open() &quot;/usr/share/nginx/html/favicon.ico&quot; failed (2: No such file or directory), client: 192.168.239.1, server: localhost, request: &quot;GET /favicon.ico HTTP/1.1&quot;, host: &quot;192.168.239.130&quot;, referrer: &quot;http://192.168.239.130/&quot;</span><br><span class="line">192.168.239.1 - - [10/Jul/2016:16:53:33 +0000] &quot;GET /favicon.ico HTTP/1.1&quot; 404 571 &quot;http://192.168.239.130/&quot; &quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36&quot; &quot;-&quot;</span><br><span class="line">192.168.239.1 - - [10/Jul/2016:16:53:59 +0000] &quot;GET / HTTP/1.1&quot; 304 0 &quot;-&quot; &quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36&quot; &quot;-&quot;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">查看容器mynginx从2016年7月1日后的最新10条日志</span></span><br><span class="line">➜ docker logs --since=&quot;2016-07-01&quot; --tail=10 mynginx</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="4-其他常用命令"><a href="#4-其他常用命令" class="headerlink" title="4.其他常用命令"></a>4.其他常用命令</h3><ul>
+<li><p>进入当前正在运行的容器</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 我们通常容器都是使用后台方式运行的，需要进入容器，修改一些配置 <span class="comment"># 命令</span></span></span><br><span class="line">➜ docker exec -it 容器id bashshell</span><br><span class="line"><span class="meta">#</span><span class="bash"> 方式二</span></span><br><span class="line">➜ docker attach 容器id</span><br><span class="line"><span class="meta">#</span><span class="bash">区别</span></span><br><span class="line"><span class="meta">#</span><span class="bash">docker <span class="built_in">exec</span> <span class="comment">#进入当前容器后开启一个新的终端，可以在里面操作。(常用)</span></span> </span><br><span class="line"><span class="meta">#</span><span class="bash">docker attach <span class="comment">#进入容器正在执行的终端</span></span></span><br></pre></td></tr></table></figure></li>
+<li><p>从容器内拷贝到主机上</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker cp 容器id:容器内路径 主机目的路径</span><br><span class="line"><span class="meta">#</span><span class="bash">例子:</span></span><br><span class="line"><span class="meta">#</span><span class="bash">进入docker容器内部</span></span><br><span class="line">➜ docker exec -it 55321bcae33d /bin/bash</span><br><span class="line">[root@55321bcae33d /]# ls</span><br><span class="line">bin etc lib lost+found mnt proc run srv tmp var dev home lib64 media opt root sbin sys usr</span><br><span class="line"><span class="meta">#</span><span class="bash">新建一个文件</span></span><br><span class="line">[root@55321bcae33d /]# echo &quot;hello&quot; &gt; java.java</span><br><span class="line">[root@55321bcae33d /]# cat java.java</span><br><span class="line">hello</span><br><span class="line">[root@55321bcae33d /]# exit</span><br><span class="line">➜ docker cp 55321bcae33d:/java.java / #拷贝</span><br><span class="line">➜ cd/</span><br><span class="line">  /ls #可以看见java.java存在</span><br></pre></td></tr></table></figure></li>
+<li><p>Docker的所有命令图解</p>
+<p><img data-src="/2021/07/22/Docker%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/image.png" alt="image"></p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hexo+Github 博客搭建教程</title>
     <url>/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</url>
     <content><![CDATA[<p><strong>最近有想法重新开始写博客了,随着年纪越来越大,需要有些沉淀的东西.16年的时候用hexo+github搭建过博客系统,于是花了点时间重新弄了一遍.我就稍稍分享一下搭建过程,当作是我这个博客的第一篇文章.</strong></p>
