@@ -7,17 +7,17 @@
 <p><strong>在上面装一个docker，记录一下安装过程。</strong></p>
 <span id="more"></span>
 
-<h6 id="1-卸载老版本"><a href="#1-卸载老版本" class="headerlink" title="1.卸载老版本"></a>1.卸载老版本</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum remove docker \</span><br><span class="line">docker-client \</span><br><span class="line">docker-client-latest \</span><br><span class="line">docker-common \</span><br><span class="line">docker-latest \</span><br><span class="line">docker-latest-logrotate \</span><br><span class="line">docker-logrotate \</span><br><span class="line">docker-engine</span><br></pre></td></tr></table></figure>
+<h6 id="卸载老版本"><a href="#卸载老版本" class="headerlink" title="卸载老版本"></a>卸载老版本</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum remove docker \</span><br><span class="line">docker-client \</span><br><span class="line">docker-client-latest \</span><br><span class="line">docker-common \</span><br><span class="line">docker-latest \</span><br><span class="line">docker-latest-logrotate \</span><br><span class="line">docker-logrotate \</span><br><span class="line">docker-engine</span><br></pre></td></tr></table></figure>
 
-<h6 id="2-安装docker基础包"><a href="#2-安装docker基础包" class="headerlink" title="2.安装docker基础包"></a>2.安装docker基础包</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y yum-utils device-mapper-persistent-data lvm2</span><br></pre></td></tr></table></figure>
+<h6 id="安装docker基础包"><a href="#安装docker基础包" class="headerlink" title="安装docker基础包"></a>安装docker基础包</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y yum-utils device-mapper-persistent-data lvm2</span><br></pre></td></tr></table></figure>
 
-<h6 id="3-设置稳定仓库"><a href="#3-设置稳定仓库" class="headerlink" title="3.设置稳定仓库"></a>3.设置稳定仓库</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager \</span><br><span class="line">--add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<h6 id="设置稳定仓库"><a href="#设置稳定仓库" class="headerlink" title="设置稳定仓库"></a>设置稳定仓库</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager \</span><br><span class="line">--add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
 
-<h6 id="4-安装Docker-Engine-Community"><a href="#4-安装Docker-Engine-Community" class="headerlink" title="4.安装Docker Engine - Community"></a>4.安装Docker Engine - Community</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install docker-ce docker-ce-cli containerd.io</span><br></pre></td></tr></table></figure>
+<h6 id="安装Docker-Engine-Community"><a href="#安装Docker-Engine-Community" class="headerlink" title="安装Docker Engine - Community"></a>安装Docker Engine - Community</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install docker-ce docker-ce-cli containerd.io</span><br></pre></td></tr></table></figure>
 
-<h6 id="5-启动与测试"><a href="#5-启动与测试" class="headerlink" title="5.启动与测试"></a>5.启动与测试</h6><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">sudo systemctl start docker  <span class="comment"># 启动docker</span></span><br><span class="line">docker info <span class="comment">#查看docker 信息</span></span><br></pre></td></tr></table></figure>
+<h6 id="启动与测试"><a href="#启动与测试" class="headerlink" title="启动与测试"></a>启动与测试</h6><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">sudo systemctl start docker  <span class="comment"># 启动docker</span></span><br><span class="line">docker info <span class="comment">#查看docker 信息</span></span><br></pre></td></tr></table></figure>
 
-<h6 id="6-设置阿里云镜像"><a href="#6-设置阿里云镜像" class="headerlink" title="6.设置阿里云镜像"></a>6.设置阿里云镜像</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo mkdir -p /etc/docker</span><br><span class="line">sudo tee /etc/docker/daemon.json &lt;&lt;-&#x27;EOF&#x27;</span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://akq7i31y.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>]]></content>
+<h6 id="设置阿里云镜像"><a href="#设置阿里云镜像" class="headerlink" title="设置阿里云镜像"></a>设置阿里云镜像</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo mkdir -p /etc/docker</span><br><span class="line">sudo tee /etc/docker/daemon.json &lt;&lt;-&#x27;EOF&#x27;</span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://akq7i31y.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Docker</category>
       </categories>
@@ -32,11 +32,11 @@
     <content><![CDATA[<p><strong>平时docker使用过程中会有用到日常的一些命令，记录一下。</strong></p>
 <span id="more"></span>
 
-<h3 id="1-帮助命令"><a href="#1-帮助命令" class="headerlink" title="1.帮助命令"></a>1.帮助命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">1.docker version #显示docker的版本信息。</span><br><span class="line">2.docker info #显示docker的系统信息，包括镜像和容器的数量</span><br><span class="line">3.docker [命令] --help #帮助命令 #帮助文档的地址:https://docs.docker.com/engine/reference/commandline/build/</span><br></pre></td></tr></table></figure>
+<h3 id="帮助命令"><a href="#帮助命令" class="headerlink" title="帮助命令"></a>帮助命令</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">1.docker version #显示docker的版本信息。</span><br><span class="line">2.docker info #显示docker的系统信息，包括镜像和容器的数量</span><br><span class="line">3.docker [命令] --help #帮助命令 #帮助文档的地址:https://docs.docker.com/engine/reference/commandline/build/</span><br></pre></td></tr></table></figure>
 
 
 
-<h3 id="2-镜像命令"><a href="#2-镜像命令" class="headerlink" title="2.镜像命令"></a>2.镜像命令</h3><h4 id="2-1-docker-images"><a href="#2-1-docker-images" class="headerlink" title="2.1 docker images"></a>2.1 docker images</h4><ul>
+<h3 id="镜像命令"><a href="#镜像命令" class="headerlink" title="镜像命令"></a>镜像命令</h3><h4 id="docker-images"><a href="#docker-images" class="headerlink" title="docker images"></a>docker images</h4><ul>
 <li><p>列出本地镜像</p>
 <h5 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker images [OPTIONS] [REPOSITORY[:TAG]]</span><br></pre></td></tr></table></figure>
 
@@ -50,7 +50,7 @@
 </ul>
 <h5 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">➜ docker images  or docker image ls #列出</span><br><span class="line">REPOSITORY(镜像的仓库源)   TAG(镜像的标签)       IMAGE ID (镜像的id)      CREATED (镜像的创建时间)      SIZE(镜像的大小)</span><br><span class="line">mysql                    latest               c8562eaf9d81           7 weeks ago                 546MB</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h4 id="2-2-docker-pull"><a href="#2-2-docker-pull" class="headerlink" title="2.2 docker pull"></a>2.2 docker pull</h4><ul>
+<h4 id="docker-pull"><a href="#docker-pull" class="headerlink" title="docker pull"></a>docker pull</h4><ul>
 <li><p>从镜像仓库中拉取或者更新指定镜像</p>
 <h5 id="语法-1"><a href="#语法-1" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull [OPTIONS] NAME[:TAG|@DIGEST]</span><br></pre></td></tr></table></figure>
 
@@ -60,7 +60,7 @@
 </ul>
 <h5 id="实例-1"><a href="#实例-1" class="headerlink" title="实例"></a>实例</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 下载镜像 docker pull 镜像名[:tag]</span></span><br><span class="line">➜ docker pull tomcat:8</span><br><span class="line">8: Pulling from library/tomcat #如果不写tag，默认就是latest</span><br><span class="line"><span class="meta">#</span><span class="bash">分层下载: docker image 的核心 联合文件系统</span></span><br><span class="line">90fe46dd8199: Already exists</span><br><span class="line">35a4f1977689: Already exists</span><br><span class="line">bbc37f14aded: Already exists</span><br><span class="line">74e27dc593d4: Already exists</span><br><span class="line">93a01fbfad7f: Already exists</span><br><span class="line">1478df405869: Pull complete</span><br><span class="line">64f0dd11682b: Pull complete</span><br><span class="line">68ff4e050d11: Pull complete</span><br><span class="line">f576086003cf: Pull complete</span><br><span class="line">3b72593ce10e: Pull complete</span><br><span class="line">Digest: sha256:0c6234e7ec9d10ab32c06423ab829b32e3183ba5bf2620ee66de866df640a027</span><br><span class="line"><span class="meta">#</span><span class="bash"> 签名 防伪</span></span><br><span class="line">Status: Downloaded newer image for tomcat:8 docker.io/library/tomcat:8 #真实地址</span><br><span class="line"><span class="meta">#</span><span class="bash">等价于</span></span><br><span class="line">docker pull tomcat:8</span><br><span class="line">docker pull docker.io/library/tomcat:8</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h4 id="2-3-docker-rmi"><a href="#2-3-docker-rmi" class="headerlink" title="2.3 docker rmi"></a>2.3 docker rmi</h4><ul>
+<h4 id="docker-rmi"><a href="#docker-rmi" class="headerlink" title="docker rmi"></a>docker rmi</h4><ul>
 <li> 删除本地一个或多少镜像</li>
 </ul>
 <h5 id="语法-2"><a href="#语法-2" class="headerlink" title="语法"></a>语法</h5>  <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker rmi [OPTIONS] IMAGE [IMAGE...]</span><br></pre></td></tr></table></figure>
@@ -71,7 +71,7 @@
 </ul>
 <h5 id="实例："><a href="#实例：" class="headerlink" title="实例："></a>实例：</h5>  <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">➜ docker rmi -f 镜像id #删除指定的镜像</span><br><span class="line">➜ docker rmi -f $(docker images -aq) #删除全部的镜像</span><br></pre></td></tr></table></figure>
 
-<h3 id="3-容器命令"><a href="#3-容器命令" class="headerlink" title="3.容器命令"></a>3.容器命令</h3><h4 id="3-1-docker-run"><a href="#3-1-docker-run" class="headerlink" title="3.1 docker run"></a>3.1 docker run</h4><ul>
+<h3 id="容器命令"><a href="#容器命令" class="headerlink" title="容器命令"></a>容器命令</h3><h4 id="docker-run"><a href="#docker-run" class="headerlink" title="docker run"></a>docker run</h4><ul>
 <li><p>创建一个新的容器并运行一个命令</p>
 <h5 id="语法-3"><a href="#语法-3" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run [OPTIONS] IMAGE [COMMAND] [ARG...]</span><br></pre></td></tr></table></figure>
 
@@ -100,7 +100,7 @@
 
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">使用镜像nginx:latest以交互模式启动一个容器,在容器内执行/bin/bash命令。</span></span><br><span class="line">➜ docker run -it nginx:latest /bin/bash</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h4 id="3-2-docker-ps"><a href="#3-2-docker-ps" class="headerlink" title="3.2 docker ps"></a>3.2 docker ps</h4><ul>
+<h4 id="docker-ps"><a href="#docker-ps" class="headerlink" title="docker ps"></a>docker ps</h4><ul>
 <li><p>列出容器</p>
 <h5 id="语法-4"><a href="#语法-4" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker ps [OPTIONS]</span><br></pre></td></tr></table></figure>
 
@@ -116,7 +116,7 @@
 
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">列出所有创建的容器ID</span></span><br><span class="line">➜ docker ps -a -q</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h4 id="3-3-docker-rm"><a href="#3-3-docker-rm" class="headerlink" title="3.3 docker rm"></a>3.3 docker rm</h4><ul>
+<h4 id="docker-rm"><a href="#docker-rm" class="headerlink" title="docker rm"></a>docker rm</h4><ul>
 <li><p>删除一个或多个容器</p>
 <h5 id="语法-5"><a href="#语法-5" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker rm [OPTIONS] CONTAINER [CONTAINER...]</span><br></pre></td></tr></table></figure>
 
@@ -131,7 +131,7 @@
 
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">删除所有已经停止的容器</span></span><br><span class="line">➜ docker rm $(docker ps -a -q)</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h4 id="3-4-docker-exec"><a href="#3-4-docker-exec" class="headerlink" title="3.4 docker exec"></a>3.4 docker exec</h4><ul>
+<h4 id="docker-exec"><a href="#docker-exec" class="headerlink" title="docker exec"></a>docker exec</h4><ul>
 <li><p>在运行的容器中执行命令</p>
 <h5 id="语法-6"><a href="#语法-6" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker exec [OPTIONS] CONTAINER COMMAND [ARG...]</span><br></pre></td></tr></table></figure>
 
@@ -146,7 +146,7 @@
 
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">通过 <span class="built_in">exec</span> 命令对指定的容器执行 bash</span></span><br><span class="line">➜ docker exec -it 9df70f9a0714 /bin/bash</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h4 id="3-5-docker-inspect"><a href="#3-5-docker-inspect" class="headerlink" title="3.5 docker inspect"></a>3.5 docker inspect</h4><ul>
+<h4 id="docker-inspect"><a href="#docker-inspect" class="headerlink" title="docker inspect"></a>docker inspect</h4><ul>
 <li><p>获取容器/镜像的元数据</p>
 <h5 id="语法-7"><a href="#语法-7" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker inspect [OPTIONS] NAME|ID [NAME|ID...]</span><br></pre></td></tr></table></figure>
 
@@ -161,7 +161,7 @@
 
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">获取正在运行的容器mymysql的 IP</span></span><br><span class="line">➜ docker inspect --format=&#x27;&#123;&#123;range .NetworkSettings.Networks&#125;&#125;&#123;&#123;.IPAddress&#125;&#125;&#123;&#123;end&#125;&#125;&#x27; mymysql</span><br><span class="line">172.17.0.3</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h4 id="3-6-docker-logs"><a href="#3-6-docker-logs" class="headerlink" title="3.6 docker logs"></a>3.6 docker logs</h4><ul>
+<h4 id="docker-logs"><a href="#docker-logs" class="headerlink" title="docker logs"></a>docker logs</h4><ul>
 <li><p>获取容器的日志</p>
 <h5 id="语法-8"><a href="#语法-8" class="headerlink" title="语法"></a>语法</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker logs [OPTIONS] CONTAINER</span><br></pre></td></tr></table></figure>
 
@@ -177,7 +177,7 @@
 
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">查看容器mynginx从2016年7月1日后的最新10条日志</span></span><br><span class="line">➜ docker logs --since=&quot;2016-07-01&quot; --tail=10 mynginx</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h3 id="4-其他常用命令"><a href="#4-其他常用命令" class="headerlink" title="4.其他常用命令"></a>4.其他常用命令</h3><ul>
+<h3 id="其他常用命令"><a href="#其他常用命令" class="headerlink" title="其他常用命令"></a>其他常用命令</h3><ul>
 <li><p>进入当前正在运行的容器</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 我们通常容器都是使用后台方式运行的，需要进入容器，修改一些配置 <span class="comment"># 命令</span></span></span><br><span class="line">➜ docker exec -it 容器id bashshell</span><br><span class="line"><span class="meta">#</span><span class="bash"> 方式二</span></span><br><span class="line">➜ docker attach 容器id</span><br><span class="line"><span class="meta">#</span><span class="bash">区别</span></span><br><span class="line"><span class="meta">#</span><span class="bash">docker <span class="built_in">exec</span> <span class="comment">#进入当前容器后开启一个新的终端，可以在里面操作。(常用)</span></span> </span><br><span class="line"><span class="meta">#</span><span class="bash">docker attach <span class="comment">#进入容器正在执行的终端</span></span></span><br></pre></td></tr></table></figure></li>
 <li><p>从容器内拷贝到主机上</p>
