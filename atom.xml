@@ -3,11 +3,11 @@
   <title>Tom&#39;s Blog</title>
   
   
-  <link href="http://www.tomchangt.com/atom.xml" rel="self"/>
+  <link href="http://tomchangt.github.io/atom.xml" rel="self"/>
   
-  <link href="http://www.tomchangt.com/"/>
+  <link href="http://tomchangt.github.io/"/>
   <updated>2021-07-22T04:17:19.528Z</updated>
-  <id>http://www.tomchangt.com/</id>
+  <id>http://tomchangt.github.io/</id>
   
   <author>
     <name>Tom</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>Hexo+Github 博客搭建教程</title>
-    <link href="http://www.tomchangt.com/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/"/>
-    <id>http://www.tomchangt.com/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</id>
+    <link href="http://tomchangt.github.io/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/"/>
+    <id>http://tomchangt.github.io/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</id>
     <published>2021-07-21T05:46:19.000Z</published>
     <updated>2021-07-22T04:17:19.528Z</updated>
     
@@ -30,10 +30,10 @@
     
     
     
-    <category term="其他" scheme="http://www.tomchangt.com/categories/%E5%85%B6%E4%BB%96/"/>
+    <category term="其他" scheme="http://tomchangt.github.io/categories/%E5%85%B6%E4%BB%96/"/>
     
     
-    <category term="Hexo" scheme="http://www.tomchangt.com/tags/Hexo/"/>
+    <category term="Hexo" scheme="http://tomchangt.github.io/tags/Hexo/"/>
     
   </entry>
   
