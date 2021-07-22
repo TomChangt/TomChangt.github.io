@@ -4,7 +4,7 @@
     <title>CentOS安装Docker</title>
     <url>/2021/07/22/CentOS%E5%AE%89%E8%A3%85Docker/</url>
     <content><![CDATA[<p><strong>最近用华为云新账号买了一个4核8G内存的服务器，价格很漂亮，打算用来当自己的学习服务器。</strong></p>
-<p>** 在上面装一个docker，记录一下安装过程。**</p>
+<p><strong>在上面装一个docker，记录一下安装过程。</strong></p>
 <span id="more"></span>
 
 <h6 id="1-卸载老版本"><a href="#1-卸载老版本" class="headerlink" title="1.卸载老版本"></a>1.卸载老版本</h6><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum remove docker \</span><br><span class="line">docker-client \</span><br><span class="line">docker-client-latest \</span><br><span class="line">docker-common \</span><br><span class="line">docker-latest \</span><br><span class="line">docker-latest-logrotate \</span><br><span class="line">docker-logrotate \</span><br><span class="line">docker-engine</span><br></pre></td></tr></table></figure>
