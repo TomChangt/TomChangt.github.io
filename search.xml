@@ -252,342 +252,73 @@
       </tags>
   </entry>
   <entry>
-    <title>MySql学习笔记（一）</title>
-    <url>/2021/07/23/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p><strong>记录一下MySql相关的一些知识点，方便以后查阅。</strong></p>
+    <title>Mysql学习笔记（1）整体架构</title>
+    <url>/2021/07/23/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
+    <content><![CDATA[<p><strong>如何使用 MySQL 固然重要，但是就像学习 Java那样，不了解 JVM 很多东西都寸步难行。同样的学习 MySQL 数据库前要先了解它的体系结构，这是学好 MySQL 数据库的前提。因此这里把 MySQL 的整体架构做个笔记整理一下。</strong></p>
 <span id="more"></span>
 
-<h5 id="谈谈MySQL中的基数是啥"><a href="#谈谈MySQL中的基数是啥" class="headerlink" title="谈谈MySQL中的基数是啥?"></a>谈谈MySQL中的基数是啥?</h5><h6 id="基数是什么"><a href="#基数是什么" class="headerlink" title="基数是什么"></a>基数是什么</h6><p>大白话讲：基数指的就是MySQL表中某一列的不同值的数量。</p>
-<p>如果这一列是唯一索引，那基数 == 行数。如果这一列是sex，枚举类型只有男女，那它是基数就是2。</p>
-<p>Cardinality越高，列就越有成为索引的价值。</p>
-<p>MySQL执行计划也会基于Cardinality选择索引。</p>
-<p>通过下面的方式可以看到表中各列的基数。</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">show</span> index <span class="keyword">from</span> kc_user;</span><br></pre></td></tr></table></figure>
-
-<p><img data-src="/2021/07/23/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/01.png"></p>
-<blockquote>
-<p><em><strong>比如这个经典的例子：<br>有一列为sex，那对于sex列中存储的值来说 非男即女，它的基数最大就是2。<br>那也就完全没有必要为sex建立索引。因为，为了提升你基于sex的查询速度，MySQL会为你选择的这个新索引创建一棵全新的B+Tree。但你sex只有两种值，对于MySQL来说，即使它为你指定的列建立了B+Tree索引，真正执行查询时，最多进行一次二分查询，剩下的操作只能是遍历，所以为sex创建索引意义不大,同时MySql在使用索引时候也会进行优化，发现用到这列索引的时候基数太差，效率不如全表扫描。</strong></em></p>
-</blockquote>
-<h6 id="InnoDB什么时候更新基数"><a href="#InnoDB什么时候更新基数" class="headerlink" title="InnoDB什么时候更新基数"></a>InnoDB什么时候更新基数</h6><p>参数：<strong>innodb_stats_auto_recalc</strong> 控制MySQL是否主动重新计算这些持久性的信息。</p>
-<p>默认为<strong>1</strong>表示<strong>true</strong>、<strong>0</strong>表示false。默认情况下当表中的行变化超过**10%**时，重新计算基数信息。</p>
-<h6 id="基数怎么计算"><a href="#基数怎么计算" class="headerlink" title="基数怎么计算"></a>基数怎么计算</h6><p>基数并不会实时更新！而且它是通过采样估算出来的值！至于基数的公式是怎样的，可能并不重要。</p>
-<p>重要的是你得知道，它是通过随机采样数据页的方式统计出来的一个估算值。</p>
-<p>而且随机采样的页数可以通过参数：<strong>innodb_stats_persistent_sample_pages</strong> 设置，默认值是<strong>20</strong>。</p>
-<p><strong><font color=Red>这就意味着 基数值并不准确，甚至你每次计算的结果相差还是蛮大的。</font></strong></p>
-<h6 id="基数持久化机制"><a href="#基数持久化机制" class="headerlink" title="基数持久化机制"></a>基数持久化机制</h6><p>可以通过参数 <strong>innodb_stats_persistent</strong>  控制是否持久化基数，默认为<strong>off</strong>。<br>当然你可以为一个单独的表设置 <strong>STATS_PERSISTENT=1</strong> 那么它的innodb_stats_persistent将自动被启用。<br>开启它的好处是：<strong>重启MySQL不会再重复计算这个值，加快重启速度。</strong></p>
-<h6 id="怎么去主动更新基数"><a href="#怎么去主动更新基数" class="headerlink" title="怎么去主动更新基数"></a>怎么去主动更新基数</h6><p>执行下面的SQL时都会触发InnoDB更新基数（即使你并没有意识到它会更新基数）。</p>
-<p><em><strong><font color=Red>所以尽量选择一个业务低峰期。</font></strong></em></p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">##主动更新基数</span><br><span class="line">analyze <span class="keyword">table</span> kc_user;</span><br></pre></td></tr></table></figure>
-
-<p>如果因为采样的数量太少了，计算的基数就错的离谱。那很可能会导致MySQL的优化器选错索引。这时你可以将这个值适当调大。但是增加太多可能会导致<strong>ANALYZE TABLE</strong> 运行缓慢。反之，<strong>ANALYZE TABLE</strong> 运行太慢。你可以适度调整参数<strong>innodb_stats_persistent_sample_pages</strong> 的值。但是这又可能导致基数计算的不准确。</p>
-<blockquote>
-<p><em><strong>如果没有办法平衡两者的关系。可以考虑减少表中索引列的数量或限制分区的数量以降低 ANALYZE TABLE复杂性。表的主键中的列数也很重要，因为主键列被附加到每个非唯一索引中。</strong></em></p>
-</blockquote>
-<h5 id="如何理解查询缓存和BufferPool"><a href="#如何理解查询缓存和BufferPool" class="headerlink" title="如何理解查询缓存和BufferPool?"></a>如何理解查询缓存和BufferPool?</h5><p><strong>下图是mysql架构体系图：</strong></p>
-<p><img data-src="/2021/07/23/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/02.jpeg"></p>
-<h6 id="查询缓存"><a href="#查询缓存" class="headerlink" title="查询缓存"></a>查询缓存</h6><ul>
-<li><p><strong>大白话理解</strong></p>
-<p>当一个SQL查询打向MySQL Server之后，MySQL Server首选会从查询缓存中查看是否曾经执行过这个SQL，如果曾经执行过的话，之前执行的查询结果会以Key-Value的形式保存在查询缓存中。<br>key是SQL语句，value是查询结果。我们将这个过程称为查询缓存！如果查询缓存中没有你要找的数据的话，MySQL才会执行后续的逻辑，通过存储引擎将数据检索出来。并且查询缓存会被shared cache for sessions。<br>是的，它会被所有的session共享。</p>
-</li>
-<li><p><strong>查询缓存的缺点</strong></p>
-<p>只要有一个sql update了该表，那么表的查询缓存就会失效。所以当你的业务对表CRUD的比例不相上下，那么查询缓存may be会影响应用的吞吐效率。<br>你可以通过参数 query_chache_type=demand禁用查询缓存。并且在mysql8.0的版本中，已经将查询缓存模块删除了。<br>所以，你可以根据自己的情况考虑一下有没有必要禁用个功能。</p>
-</li>
-</ul>
-<h6 id="Buffer-Pool"><a href="#Buffer-Pool" class="headerlink" title="Buffer Pool"></a>Buffer Pool</h6><p>其实无论是连接池也好、缓存池也好，只要是XXX池，都是为加速而设计的。比如操作系统的文件系统为了加快数据的读取速度，每次都做低效率的磁盘随机IO设计了缓冲写机制。</p>
-<p>而Buffer Pool就是MySQL存储引擎为了加速数据的读取速度而设计的缓冲机制。</p>
-<p><img data-src="/2021/07/23/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/03.png"></p>
-<p>如上图，Buffer中的中的单位是一个个的缓存页。缓存页本质上就是从磁盘中读取进内存的数据页。数据页中存放着一行行的记录。Buffer Pool中的默认大小为128MB，数据页大小16KB。</p>
-<p>Buffer Pool中的描述信息以双向链表（LRU）的形式组织在一起。通过数据页的描述信息，我们能找它所描述的缓存页的位置。</p>
-<p>看到这里你除了要知道查询缓存和Buffer Pool的所属：前者属于MySQLServer层面，后者属于存储引擎层面。还需要知道另一个知识点：相对于极容易整体失效的查询缓存来说，Buffer Pool是通过InnoDB优化后的LRU算法控制将老化的数据数据从缓存中干掉的，所以Buffer Pool中缓存的数据不会像前者一样一次性整体失效。</p>
-<h5 id="BufferPool中的LRU-List"><a href="#BufferPool中的LRU-List" class="headerlink" title="BufferPool中的LRU-List"></a>BufferPool中的LRU-List</h5><h6 id="传统的LRU链表"><a href="#传统的LRU链表" class="headerlink" title="传统的LRU链表"></a>传统的LRU链表</h6><p>通过前面的内容我们知道了MySQL的Buffer Pool机制以及MySQL组织数据的最小单位是数据页。</p>
-<p>并且我们也知道了 数据页在Buffer Pool中是以LRU链表的数据结构组织在一起的。</p>
-<p>其实所谓的LRU链表本质上就是一个双向循环链表，如下图：</p>
-<p><img data-src="/2021/07/23/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/04.png"></p>
-<p>下面我们结合LRU链表和数据页机制描述一下MySQL加载数据的机制：</p>
-<p>我们将从磁盘中读取的数据页称为young page，young page会被直接放在链表的头部。已经存在于LRU链表中数据页如果被使用到了，那么该数据页也被认为是young page而被移动到链表头部。这样链表尾部的数据就是最近最少使用的数据了，当Buffer Pool容量不足，或者后台线程主动刷新数据页时，就会优先刷新链表尾部的数据页。</p>
-<h6 id="传统LRU链表有什么不足"><a href="#传统LRU链表有什么不足" class="headerlink" title="传统LRU链表有什么不足"></a>传统LRU链表有什么不足</h6><blockquote>
-<p><em><strong>相信你之前肯定听说过操作系统级别的空间局部性原理：</strong></em></p>
-<p><em><strong>spatial locality（空间局部性）：也就是说读取一个数据，在它周围内存地址存储的数据也很有可能被读取到，于是操作系统会帮你预读一部分数据。</strong></em></p>
-</blockquote>
-<p><em><strong>MySQL也是存在预读机制的。</strong></em></p>
+<h5 id="结构总览"><a href="#结构总览" class="headerlink" title="结构总览"></a>结构总览</h5><p><img data-src="/2021/07/23/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/01.png"></p>
+<p>从上图可以发现，MySQL由以下几部分组成：</p>
+<p>MySQL驱动：</p>
 <ul>
-<li>当Buffer Pool中存储着一个区中13个连续的数据页时，你再去这个区里面读取，MySQL就会将这个区里面所有的数据页都加载进Buffer Pool中的LRU链表中。（<em>然后可能你根本不会使用这些被预读的数据页</em>）</li>
-<li>当你顺序的访问了一个区中大于 innndb_read_ahead_threshold=56个数据页时，MySQL会自动帮你将下一个相邻区中的数据页读入LRU链表中。（<em>这个机制默认是被关闭的</em>）</li>
-<li>当你执行select * from xxx;时，如果表中的数据页非常多，那这些数据页就会一一将Buffer Pool中的经常使用的缓存页挤下去，可能导致留在LRU链表中的全部是你不经常使用的数据。</li>
+<li>作用：跟数据库建立一个网络连接。</li>
+<li>Java语言开发的系统，MySQL会提供Java版本的MySQL驱动，对于PHP、Perl、.NET、Python、Ruby等各种常见的编程语言，<br>MySQL都会提供对应语言的MySQL驱动，让各种语言编写的系统通过MySQL驱动去访问数据库。</li>
 </ul>
-<p>综上：你可以发现，所谓的预读机制的优势，在一定程度上违背了LRU去实现将最近最少使用的数据页刷入磁盘的设计初衷。</p>
-<h6 id="MySQL中的LRU链表"><a href="#MySQL中的LRU链表" class="headerlink" title="MySQL中的LRU链表"></a>MySQL中的LRU链表</h6><p>MySQL的LRU链表长下面这样:</p>
-<p><img data-src="/2021/07/23/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/05.png"></p>
-<p>LRU链表被MidPoint分成了New Sublist和Old Sublist两部分。</p>
-<p>其中New Sublist大概占比5/8，Old Sublist占比3/8。</p>
-<p>New Sublist存储着young page，而Old Sublist存储着Old Page。</p>
-<p>我们可以通过如下的方式查看MidPoint的默认值。</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%innodb_old_blocks_pct%&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<h6 id="MySQL定制的LRU链表的优势"><a href="#MySQL定制的LRU链表的优势" class="headerlink" title="MySQL定制的LRU链表的优势"></a>MySQL定制的LRU链表的优势</h6><p>而对于MySQL的LRU链表来说，通过MidPoint将链表分成两部分。</p>
-<p>从磁盘中新读出的数据会放在Old Sublist的头部。</p>
-<p>这样即使你真的使用select * from t;也不会导致New Sublist中的经常被访问的数据页被刷入磁盘中。</p>
-<p>正常情况下，访问Old Sublist中的缓存页，那么该缓存页会被提升到New Sublist中成为热数据。</p>
-<p>但是当你通过 select * from t将一大批数据加载到Old Sublist时，然后在不到1s内你又访问了它，那在这段时间内被访问的缓存页并不会被提升为热数据。这个1s由参数 <em><strong>innodb_old_blocks_time</strong></em> 控制。</p>
-<p><em><strong>另外：New SubList也是经过优化的，如果你访问的是New SubList的前1/4的数据，它是不会被移动到LRU链表头部去的。</strong></em></p>
-<h5 id="InnoDB的FreeList"><a href="#InnoDB的FreeList" class="headerlink" title="InnoDB的FreeList"></a>InnoDB的FreeList</h5><blockquote>
-<p><em><strong>MySQL启动后，BufferPool就会被初始化，在你没有执行任何查询操作之前，BufferPool中的缓存页都是一块块空的内存，未被使用过也没有任何数据保存在里面。而且你也知道了通过缓冲页的描述信息可以直接且唯一的找到它所指向的缓存页。</strong></em></p>
-<p><em><strong><font color=Blue>那你有没有想过，我们从磁盘里面读取出来的 数据页 应该放到那个缓冲页中去呢？</font></strong></em></p>
-<p><em><strong>这个问题就引出了Free List。</strong></em></p>
-</blockquote>
-<h6 id="Free-List"><a href="#Free-List" class="headerlink" title="Free List"></a>Free List</h6><p>其实Free List是Buffer Pool中基于缓存页描述信息组织起来的双向链表。换言之，Free List中的每一个结点都是缓存页对应的描述信息。并且通过描述信息可以找到指定的缓存页（缓存页）。</p>
-<p>InnoDB设计Free List的初衷就是为了解决上面说的问题。</p>
-<p>如果这个缓存页中没有存储任何数据，那么它对应的描述信息就会被维护进Free List中。这时当你想把从磁盘中读取出一个数据页放入缓存页中的话，就得先从Free List中找一个节点（Free List中的所有节点都会指向一个从未被使用过的缓存页），那接着就可以把你读取出来的这个数据页放入到该节点指向的缓存页中。</p>
-<p>相对应的当数据页中被放入数据之后，它对应的描述信息块会被从Free List中移出。</p>
-<h6 id="如何判断数据页有没有在缓存中？"><a href="#如何判断数据页有没有在缓存中？" class="headerlink" title="如何判断数据页有没有在缓存中？"></a>如何判断数据页有没有在缓存中？</h6><p>你会不会纳闷MySQL怎么知道刚读取出来的这个数据页有没有在缓存页中呢？</p>
-<p>这个功能的实现依托于另一个数据结构：**<font color=Blue>hash table</font>**</p>
-<p><strong><font color=Blue>key = 表空间号+数据页号</font></strong></p>
-<p><strong><font color=Blue>value = 缓存页地址</font></strong></p>
-<p>如果存在于hash table中，那就说明该数据页已经存在于Buffer Pool中了，优先使用Buffer Pool中的缓存页。相信你肯定能想到为啥优先使用Buffer Pool中的缓存页吧！首先免去了磁盘的随机IO，其次缓存页中的数据可能是已经被修改了的脏数据。</p>
-<h5 id="Flush-List-以及-脏页的落盘机制"><a href="#Flush-List-以及-脏页的落盘机制" class="headerlink" title="Flush List 以及 脏页的落盘机制"></a>Flush List 以及 脏页的落盘机制</h5><p>MySQL启动后Buffer Pool会初始化。Buffer Pool也会初始化好N多个空白的缓存页，以及它们的描述数据会被组织成LRU链表以及FreeList 双向链表。</p>
-<p>这时你从磁盘中读取一个数据页，会先从Free List中找出一个空闲缓存页的描述信息，然后将你读出的数据页中加载进缓存页中。同时将缓存页的描述信息从Free List中剔除，此外该描述信息块还会被维护进LRU链表中。</p>
-<p>数据页被加载进Buffer Pool后你就可以对其进行变更操作了。</p>
-<h6 id="Flush-List"><a href="#Flush-List" class="headerlink" title="Flush List"></a>Flush List</h6><p>为了加快响应客户端的速度，MySQL会在Buffer Pool中对数据进行修改，可是一旦你对LRU链表中的缓存页做了修改，那该页中的数据和磁盘中的数据页信息就不一致了！大家一般管这种数据页叫做<strong>脏页</strong>。</p>
-<p>为了保证数据的最终一致性，MySQL是需要将脏页刷新回磁盘的！</p>
-<p>但是问题是：需要将哪些数据页刷新回磁盘呢？</p>
-<p>这就引出了<strong>Flush List</strong>～</p>
-<p>Flush List 和 Free List很像，都是由Buffer Pool中数据描述信息组织而成的双向链表。</p>
-<p>一旦你对内存中的缓冲页作出了修改，那该缓冲页对应的描述信息块就会添加进 Flush List。这样当Buffer Pool中的数据页不够用时，我们就可以优先将 Flush List中的脏数据页刷新进磁盘中。</p>
-<h6 id="什么是脏页？什么是脏数据"><a href="#什么是脏页？什么是脏数据" class="headerlink" title="什么是脏页？什么是脏数据"></a>什么是脏页？什么是脏数据</h6><ul>
-<li><p>什么是脏页？</p>
-<p>上面有提及，脏页就是LRU链表中被修改了的缓存页。他们和磁盘中的数据页不一致，脏页是需要被刷新回磁盘的。</p>
-</li>
-<li><p>什么是脏数据？</p>
-<p>这个问题其实引出了脏读的概念。举个例子：事物A中读取到了事物B中未提交的数据，我们管这些数据叫做脏数据。</p>
+<p>数据库连接池：</p>
+<ul>
+<li>作用：在连接池里面维护了多个MySQL的连接，让多个线程使用里面的不同的数据库连接去执行SQL语句,然后执行完SQL语句之后，不要销毁这个数据库连接，而是把连接放回池子里，后续还可以继续使用。</li>
+<li>常见的数据库连接池有DBCP，C3P0，Druid，等等。</li>
+</ul>
+<p>MySQL数据库的连接池：</p>
+<ul>
+<li>MySQL中的连接池维护了与系统之间的多个数据库连接。除此之外，你的系统每次跟MySQL建立连接的时候，<br>还会根据你传递过来的账号和密码，进行账号密码的验证，库表权限的验证。</li>
+</ul>
+<p>SQL接口：</p>
+<ul>
+<li><strong>负责处理接收到的SQL语句</strong>，他是一套执行SQL语句的接口，专门用于执行我们发送给MySQL的那些增删改查的SQL语句</li>
+</ul>
+<p>查询解析器：</p>
+<ul>
+<li><p><strong>让MySQL能看懂SQL语句。</strong>所谓的SQL解析，就是按照既定的SQL语法，对我们按照SQL语法规则编写的SQL语句进行解析，<br>然后理解这个SQL语句要干什么事情。比如：select id,name,age from users where id=1；解析后可能拆解成以下几个部分：</p>
+<p>1.我们现在要从“users”表里查询数据</p>
+<p>2.查询“id”字段的值等于1的那行数据</p>
+<p>3.对查出来的那行数据要提取里面的“id,name,age”三个字段。</p>
 </li>
 </ul>
-<h6 id="脏页刷回磁盘的时机"><a href="#脏页刷回磁盘的时机" class="headerlink" title="脏页刷回磁盘的时机"></a>脏页刷回磁盘的时机</h6><p>当Buffer Pool不够用时，根据LRU机制，MySQL会将Old SubList部分的缓存页移出LRU链表。如果被移除出去的缓存页的描述信息在Flush List中，MySQL就得将其刷新回磁盘。</p>
-<p>InnoDB存储引擎将脏页刷回磁盘的时机有蛮多的，有如下情况：</p>
-<ol>
-<li>当MySQL数据库关闭时，会将所有的脏数据页刷新回磁盘。这个功能由参数：**<font color=Blue>innodb_fast_shutdown</font>** = 0控制，默认让InnoDB在关闭前将脏页刷回磁盘，以及清理掉undo log。</li>
-<li>有一个后台线程Master Thread会按照每秒或者每十秒的速度，异步的将Buffer Pool中一定比例的页面刷新回磁盘中。</li>
-<li>在MySQL5.7中，Buffer Pool的刷新由page cleaner threads完成:<ul>
-<li>我们可以通过innodb_page_cleaners参数控制page cleaner threads线程的数量，但是当你将这个数值调整的比Buffer Pool的数量还大时，MySQL会自动将 innodb_page_cleaners数量设置为innodb_buffer_pool_instances的数量。</li>
-<li>Innodb1.1.x之前需要保证LRU列表中有至少100个空闲页可以使用。低于这个阈值就会触发脏页的刷新。</li>
-<li>从MySQL5.6，也就是innodb1.2.X开始，innodb_lru_scan_depth参数为每个缓冲池实例指定page cleaner threads 扫描Buffer Pool来查找要刷新的脏页的下行距离。默认为1024，该后台线程每秒都会执行一次。</li>
-</ul>
-</li>
-<li>当脏数据页太多时，也会触发将脏数据页刷新回磁盘。该机制可由参数<code>innodb_nax_dirty_pages_pct</code>控制，比如将其设置为75，表示，当Buffer Pool中的脏数据页达到整体缓存的75%时，触发刷新的动作。现实情况是该参数默认值为0。以此来禁用Buffer Pool早期的刷新行为。</li>
-<li>当redo log不可用时，也会强制脏页列表中的脏页刷新回磁盘。这个机制同样由一个后台线程完成。</li>
-</ol>
-<h6 id="关于脏页刷新其他知识点"><a href="#关于脏页刷新其他知识点" class="headerlink" title="关于脏页刷新其他知识点"></a>关于脏页刷新其他知识点</h6><p><strong>刷新临接数据页</strong>：意思是当MySQL将某脏页刷新回磁盘时，是否也以相同的态度将该脏页邻接的脏页一并刷新回磁盘。</p>
-<p>可以通过参数innodb_flush_neighbors控制该过程。</p>
+<p>查询优化器：</p>
 <ul>
-<li>设置为0时表示，禁用刷新邻接的功能。</li>
-<li>设置为1时表示，以相同的态度刷新其邻接的脏页。</li>
-<li>设置为2时表示，以相同的程度刷新脏页。</li>
+<li>选择最优的查询路径。他会针对你编写的几十行、几百行甚至上千行的复杂SQL语句生成查询路径树，<br>然后从里面选择一条最优的查询路径出来。</li>
 </ul>
-<p><strong><font color=Red>那如何选择将其设置为哪种状态呢？</font></strong></p>
-<p>你可以根据MySQL实例所在机器的存储类型来决定。如果为HDD存储建议将其开启，因为HDD的磁盘刷新速率较低，开启该参数后可以有效的减少IO操作。相反如果使用SSD存储，其本身就有高磁盘IO的特性，建议禁用该参数。</p>
-]]></content>
-      <categories>
-        <category>Mysql</category>
-      </categories>
-      <tags>
-        <tag>mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySql学习笔记（三）</title>
-    <url>/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
-    <content><![CDATA[<p><strong>了解一下数据在磁盘中的存储</strong></p>
-<span id="more"></span>
-
-<h5 id="什么是数据表"><a href="#什么是数据表" class="headerlink" title="什么是数据表"></a>什么是数据表</h5><p>我们常说Mysql数据是存储在数据表中的，比如执行一条sql更新语句:</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mysql &gt; update user set username = &#x27;tom&#x27; where id = 1;</span><br></pre></td></tr></table></figure>
-
-<p>上面这条sql语句将user这张数据表中id为1的记录的username列修改成了‘tom’</p>
-<p>这里的user其实就是数据表。当然这不是重点，重点是我想表达：数据表其实是逻辑上的概念。而下面要说的<strong>表空间是物理层面的概念</strong>。</p>
-<h5 id="什么是表空间"><a href="#什么是表空间" class="headerlink" title="什么是表空间"></a>什么是表空间</h5><p><code>&quot;在innodb存储引擎中数据是按照表空间来组织存储的&quot;</code> ,表空间是表空间文件是实际存在的<strong>物理文件</strong> </p>
-<p><strong><font color=Red>MySQL有很多种表空间，下面一起来了解一下。</font></strong></p>
-<h5 id="sys表空间"><a href="#sys表空间" class="headerlink" title="sys表空间"></a>sys表空间</h5><p>你可以像下面这样查看你的MySQL的系统表空间</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/01.png"></p>
-<p>默认情况下，MySQL会初始化一个大小为12MB，名为ibdata1文件，并且随着数据的增多，它会自动扩容。</p>
-<p>这个ibdata1文件是系统表空间，也是默认的表空间，也是默认的表空间物理文件，也是传说中的共享表空间。</p>
-<blockquote>
-<p>关于这个共享表空间，直观上看，如果这个表空间能为multiple tables.存储数据，那么它就可以被称为共享表空间，所以你可以认为系统表空间是共享表空间。</p>
-</blockquote>
-<h6 id="配置-sys-表空间"><a href="#配置-sys-表空间" class="headerlink" title="配置 sys 表空间"></a>配置 sys 表空间</h6><p>系统表空间的数量和大小可以通过启动参数：<code>innodb_data_file_path</code></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> my.cnf</span></span><br><span class="line">[mysqld]</span><br><span class="line">innodb_data_file_path=/dir1/ibdata1:2000M;/dir2/ibdata2:2000M:autoextend</span><br></pre></td></tr></table></figure>
-
-<p>ibdata1表空间为固定大小2000M，而ibdata2的2000M使用完后会自动增长。</p>
-<p>假设你的服务器有两块存储A、B。并且A、B上分别挂载着dir1目录和dir2目录。那你再看上面的配置，它其实是在使用两个不同磁盘上的文件共同构建表空间。由于这两个文件位于不同的磁盘上，磁盘的负载就会被均分，数据库整体的性能也有所提升。</p>
-<p>如果你想让每一个数据表都有一个单独的表空间文件的话，可以通过参数<code>innodb_file_per_table</code>设置。</p>
-<blockquote>
-<p>这个参数只有在MySQL5.6或者是更高的版本中才可以使用。</p>
-</blockquote>
-<p>可以通过配置文件 my.cnf 配置：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">innodb_file_per_table=ON</span><br></pre></td></tr></table></figure>
-
-<p>也可以通过命令：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mysql &gt; SET GLOBAL innodb_file_per_table=ON;</span><br></pre></td></tr></table></figure>
-
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/02.png"></p>
-<p>让你将其设置为ON，那之后InnoDB存储引擎产生的表都会自己独立的表空间文件。</p>
-<p><strong>独立的表空间文件命名规则：表名.ibd</strong></p>
-<blockquote>
-<p><strong>注意：</strong></p>
-<p>独立表空间文件中仅存放该表对应数据、索引、insert buffer bitmap。</p>
-<p>其余的诸如：undo信息、insert buffer 索引页、double write buffer 等信息依然放在默认表空间，也就是共享表空间中。</p>
-<p>这里的undo、insert buffer、double write buffer 如果你不了解他们是啥也没关系。后面会理解到，在这里只需要先了解即使你设置了</p>
-<p><code>innodb_file_per_table=ON</code> 共享表空间的体量依然会不断的增长，并且你即使你不断的使用undo进行rollback，共享表空间大小也不会缩减就好了。</p>
-</blockquote>
-<p>最后再简述一下这种file per table的优缺点：</p>
-<p><strong>优点：</strong></p>
+<p>执行器：</p>
 <ul>
-<li>提升容错率，表A的表空间损坏后，其他表空间不会收到影响。</li>
-<li>使用MySQL Enterprise Backup快速备份或还原在每表文件表空间中创建的表，不会中断其他<code>InnoDB</code>表的使用</li>
+<li>根据执行计划调用存储引擎的接口。执行器会根据优化器选择的执行方案，去调用存储引擎的接口<br>按照一定的顺序和步骤，就把SQL语句的逻辑给执行了。</li>
 </ul>
-<p><strong>缺点：</strong></p>
+<p>存储引擎：</p>
 <ul>
-<li>对fsync系统调用来说不友好，如果使用一个表空间文件的话单次系统调用可以完成数据的落盘，但是如果你将表空间文件拆分成多个。原来的一次fsync可能会就变成针对涉及到的所有表空间文件分别执行一次fsync，增加fsync的次数。</li>
+<li>存储引擎其实就是执行SQL语句的，他会按照一定的步骤去查询内存缓存数据，更新磁盘数据，查询磁盘数据，等等一系列的操作。</li>
 </ul>
-<h5 id="临时表空间"><a href="#临时表空间" class="headerlink" title="临时表空间"></a>临时表空间</h5><p>临时表空间用于存放用户创建的临时表和磁盘内部临时表。</p>
-<p>参数<code>innodb_temp_data_file_path</code>定义了临时表空间的一些名称、大小、规格属性如下图：</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/03.png"></p>
-<h5 id="undo-表空间"><a href="#undo-表空间" class="headerlink" title="undo 表空间"></a>undo 表空间</h5><p>相信你肯定听过说undolog，常见的当你的程序想要将事物rollback时，底层MySQL其实就是通过这些undo信息帮你回滚的。</p>
-<p>在MySQL的设定中，有一个表空间可以专门用来存放undolog的日志文件。</p>
-<p>然而，在MySQL的设定中，默认的会将undolog放置到系统表空间中。</p>
-<p>如果你的MySQL是新安装的，那你可以通过下面的命令看看你的MySQL undo表空间的使用情况：</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/04.png"></p>
-<p>可以看到，我的MySQL的undo log 表空间有两个。也就是我的undo从默认的系统表空间中转移到了undo log专属表空间中了。</p>
-<p>那undo log到底是该使用默认的配置放在系统表空间呢？还是该放在undo表空间呢？这其实取决服务器使用的存储卷的类型。</p>
-<p>如果是SSD存储，那推荐将undo info存放在 undo表空间中。</p>
-<h5 id="行-有哪些格式"><a href="#行-有哪些格式" class="headerlink" title="行 有哪些格式"></a>行 有哪些格式</h5><p>MySQL的数据行有四种格式：一种就是图中的 Compact格式，还有一种是Redundant格式、以及Dynamic、Compress</p>
-<p>Compact是一种紧凑的行格式，设计的初衷就是为了让一个数据页中可以存放更多的数据行。</p>
-<p>让一个数据页中可以存放更多的数据行是一个多么激动人心的事，MySQL以数据页为单位从磁盘中读数据，如果能做到让一个数据页中有更多的行，那岂不是单</p>
-<p>行使用的数据页空间变少了，且整体的效率直线飙升?</p>
-<p>官网介绍：Compact能比Redundant格式节约20%的存储。</p>
-<p>Compact从MySQL5.0引入，MySQL5.1之后，行格式默认设置成 Compact 。</p>
-<p>表中有的列允许为null，有的列是变长的varchar类型。那Compact行格式是如何组织描述这些信息的呢？如下图：</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/05.png"></p>
-<h5 id="MySQL单行能存储多大体量的数据"><a href="#MySQL单行能存储多大体量的数据" class="headerlink" title="MySQL单行能存储多大体量的数据?"></a>MySQL单行能存储多大体量的数据?</h5><p>在MySQL的设定中，单行数据最大能存储65535byte的数据（注意是byte，而不是字符）</p>
-<p>但是当你像下面这样创建一张数据表时却发生了错误：</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/06.png"></p>
-<p>MySQL不允许创建一个长度为65535byte的列，因为数据页中每一行中都有我们上图提到的隐藏列。</p>
-<p>所以将varchar的长度降低到65532byte即可成功创建该表:</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/07.png"></p>
-<p><strong>注意这里的65535指的是字节，而不是字符。</strong></p>
-<p>所以如果你将charset换成utf8这种编码格式，那varchar(N)中的N其实指的N个字符，而不是N个byte。所以如果你像下面这样创建表就会报错。</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/08.png"></p>
-<p>假如encode=utf8时三个byte表示一个字符。那么65535 / 3 = 21845个字符。</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/09.png"></p>
-<h5 id="Compact格式是如何做到紧凑的？"><a href="#Compact格式是如何做到紧凑的？" class="headerlink" title="Compact格式是如何做到紧凑的？"></a>Compact格式是如何做到紧凑的？</h5><p>MySQL每次进行磁盘的随机读。</p>
-<p>默认情况下，读出来的数据页的大小为16KB。数据页中存储着数据行。</p>
-<p>那就意味着一个数据页中能存储越多的数据行，MySQL整体的进行的IO次数就越少，性能就越快。</p>
-<p>Compact格式的实现思路是：当列的类型为VARCHAR、 VARBINARY、 BLOB、TEXT时，该列超过768byte的数据放到其他数据页中去。</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/10.png"></p>
-<p>MySQL这样做，有效的防止了单个varchar列或者Text列太大导致单个数据页中存放的行记录过少而让IO飙升的窘境且占内存的。</p>
-<h5 id="什么是行溢出"><a href="#什么是行溢出" class="headerlink" title="什么是行溢出?"></a>什么是行溢出?</h5><p>如果数据页默认大小为16KB，换算成byte：16*1024 = 16384 byte</p>
-<p>那你有没有发现，单页能存储的16384byte和单行最大能存储的 65535byte 差了好几倍呢？</p>
-<p><strong>也就是说，假如你要存储的数据行很大超过了65532byte那么你是写入不进去的。假如你要存储的单行数据小于65535byte但是大于16384byte，这时你可以成功insert，但是一个数据页又存储不了你插入的数据。这时肯定会行溢出！</strong></p>
-<p>其实在MySQL的设定中，发生行溢出并不是达到16384byte边缘才会发生。</p>
-<p>对于varchar、text等类型的行。当这种列存储的长度达到几百byte时就会发生行溢出。</p>
-<h5 id="行-如何溢出？"><a href="#行-如何溢出？" class="headerlink" title="行 如何溢出？"></a>行 如何溢出？</h5><p>还是看这张图：</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/10.png"></p>
-<p>在MySQL设定中，当varchar列长度达到768byte后，会将该列的前768byte当作prefix存放在行中，多出来的数据溢出存放到溢出页中，然后通过一个偏移量指针将两者关联起来，这就是行溢出机制。</p>
-<h5 id="思考一个问题"><a href="#思考一个问题" class="headerlink" title="思考一个问题"></a>思考一个问题</h5><p>不知道你有没有想过这样一个问题：</p>
-<p>首先你肯定知道，MySQL使用的是B+Tree的聚簇索引，在这棵B+Tree中非叶子节点是只存索引不存数据，叶子节点中关联着真实的数据。同时叶子结点指向数据页。</p>
-<p>那当单行存不下的时候，为啥不存储在两个数据页中呢？就像下图这样。</p>
-<p>单个节点存储下，我用多个节点存总行吧！说不定这样我的B+Tee还能变大长高（这其实是错误的想法）这个错误的描述对应的脑图如下：</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/11.png"></p>
-<p>那MySQL不这样做的原因如下：</p>
-<p><strong>MySQL想让一个数据页中能存放更多的数据行，至少也得要存放两行数据。否则就失去了B+Tree的意义。B+Tree也退化成一个低效的链表。</strong></p>
-<p>你可以品一下这句话，他说的每个数据页至少要存放两行数据的意思不是说 数据页不能只存一行。你确确实实可以只往里面写一行数据，然后去吃个饭，干点别的。一直让这个数据页中只有一行数据。</p>
-<p>上面那句话想表达的意思是：当你往这个数据页中写入一行数据时，即使它的体积很大，而且将达到了一个数据页的极限，但是通过行溢出机制。依然能保证你的下一条数据还能写入到这个数据页中。</p>
-<p><img data-src="/2021/07/30/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/12.png"></p>
-]]></content>
-      <categories>
-        <category>Mysql</category>
-      </categories>
-      <tags>
-        <tag>mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySql学习笔记（二）</title>
-    <url>/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
-    <content><![CDATA[<p><strong>连贯起来看一下当你CRUD时BufferPool中发生了什么？以及BufferPool做了哪些优化?</strong></p>
-<span id="more"></span>
-
-<h5 id="Buffer-Pool"><a href="#Buffer-Pool" class="headerlink" title="Buffer Pool"></a>Buffer Pool</h5><p>我们知道，MySQL对数据的增删改查都是内存中完成的，这块内存就是Buffer Pool。</p>
-<p>你可以像下面这样查看下你的MySQL的Buffer的Buffer Pool的默认大小</p>
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/01.png"></p>
-<p>上图中的0.125单位为GB，转换成MB就是 1024* 1/8 = 128MB</p>
-<p>总结来说，就是MySQL启动后就会为我们初始化好这块Buffer Pool。如下图：</p>
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/02.png"></p>
-<p>如上图所示:</p>
-<p>MySQL以数据页为单位，从磁盘中读取数据。数据页被读取到内存中，所谓的内存其实就是Buffer Pool。</p>
-<p>Buffer Pool中维护的数据结构是缓存页，而且每个缓存页都有它对应的描述信息。</p>
-<p>如果我们忽略数据的预热机制，由于MySQL刚启动，还没有从磁盘中读取任何数据页到内存（Buffer Pool）中，那此时Buffer Pool中所有的缓存页其实都是空的。</p>
-<p>除了缓存页之外，你还能看到Buffer Pool中存在三个双向链表。分别是FreeList、LRUList以及FlushList。这三个双向链表中维护着缓存页的描述信息。</p>
-<h5 id="读出来了1个数据页该怎么处理？"><a href="#读出来了1个数据页该怎么处理？" class="headerlink" title="读出来了1个数据页该怎么处理？"></a>读出来了1个数据页该怎么处理？</h5><p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/03.png"></p>
-<p>InnoDB会将你读取出来的数据页加载进Buffer Pool中的缓存页中，然后缓存页的描述信息也会被维护进LRU链表中。链表做了冷热数据分离优化，5/8的区域是热数据区域，3/8的区域算是冷数据区域。（本质上它们都是双向链表），而你新读取的数据页会被放在冷数据区的靠前的位置上。</p>
-<p>如果你将该数据页读取出来加载进缓存页中后，间隔没到1s，就使用该缓存页。那么InnoDB是不会将这个描述信息移动到5/8的热数据区域的。</p>
-<p>但是当超过1s后，你又去读这个数据页。那这个数据页的描述信息就会被放到热数据区域。如下图：</p>
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/04.png"></p>
-<h5 id="一次性读出来了好多数据页怎么处理？"><a href="#一次性读出来了好多数据页怎么处理？" class="headerlink" title="一次性读出来了好多数据页怎么处理？"></a>一次性读出来了好多数据页怎么处理？</h5><p>MySQL是存在预读机制的，假设触发了MySQL的预读机制。一次性从磁盘中读取来N多个缓存页。会得到下面这张图:</p>
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/05.png"></p>
-<p>因为发生了预读，所以你的一次磁盘IO读出了大量的数据页，但是这些数据页中很可能是有一些是你根本不需要的，仅仅是预读把它们级联查出来了。这时按老规矩，从FreeList中找到空闲的缓存页信息，然后将其从FreeList中移除。根据找到的空闲缓存页的描述信息，将从磁盘中读取出来的数据页加载进去。相应的该缓存页的描述信息也会被维护进LRU链表的冷数据区域。</p>
-<p>这时你就会发现这种冷热数据分离的机制多么妙！即使发生了预读又怎么样？根本没有机会将热数据区的描述信息1挤下去。当内存不够用了需要将部分缓存页刷新到磁盘中时，那就从冷数据区域开始刷新好了，反正它们本来就不经常被使用。</p>
-<p>同样的，当你超过1s后又访问了冷数据区的缓存页，比如访问了缓存页66和数据页67，该缓存页对应的描述信息是会被提升到热数据区，于是有了下面这张图：</p>
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/06.png"></p>
-<p>那，如果你访问上图中的数据页67，它会移动到描述信息66所在节点的前面去吗？</p>
-<p>其实MySQL的LRU链表做了优化，数据67是不会往前跑的。</p>
-<h5 id="如果你修改了某个缓存页怎么办？"><a href="#如果你修改了某个缓存页怎么办？" class="headerlink" title="如果你修改了某个缓存页怎么办？"></a>如果你修改了某个缓存页怎么办？</h5><p>假设你执行了update xxx set xxx where id in (xxx,xxx,xxx,xxx)；</p>
-<p>而符合条件的数据行恰巧就在描述信息1、描述信息66、描述信息67所指向的缓存页中，那BufferPool中会发生什么呢？</p>
-<p>如下图：</p>
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/07.png"></p>
-<p>你会看到，被你修改了的缓存页的描述信息，被添加到了FlushList这个双向链表中。</p>
-<p>想必看到这里你已经知道了，原来FlushList中的节点存放就是被修改了脏数据页的描述信息块。</p>
-<p>随着MySQL被使用的时间越来越长，BufferPool的大小就越来越小。等它不够用的时候，就会将部分LRU中的数据页描述信息移除出去，这时如果发现被移除出来的数据页在FLushList中，就会触发fsync的操作，触发随机写磁盘。如果该数据页是干净的，那移除出去就好了。其他也不用干啥。</p>
-<p>举个例子：假设需要将描述信息66、描述信息67指向的缓存页落盘。会得到下面这张脑图：</p>
-<p>描述信息66、67指向的缓存页被刷新进磁盘。同时从FlushList中将其移除，然后存入FreeList中。完成一个循环。</p>
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/08.png"></p>
-<p>当然，将脏数据页刷新进磁盘的时机除了上图中说的还有好多种情况，上篇文章有介绍。</p>
-<p><strong><font color=Red>下面再看一下关于Buffer Pool的设置和相关的优化。</font></strong></p>
-<h5 id="配置BufferPool的大小"><a href="#配置BufferPool的大小" class="headerlink" title="配置BufferPool的大小"></a>配置BufferPool的大小</h5><p>buffer pool越大，MySQL的性能就越强悍。你可以像下面这样配置Buffer Pool的大小。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">mysql&gt;</span><span class="bash"> SET GLOBAL innodb_buffer_pool_size=402653184;</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="配置多个BufferPool实例"><a href="#配置多个BufferPool实例" class="headerlink" title="配置多个BufferPool实例"></a>配置多个BufferPool实例</h5><p>你可以为MySQL实例配置多个Buffer Pool，每个Buffer Pool各自负责管理一部分缓存页，并且有自己独立的LRU、Free、Flush链表。</p>
-<p>当有多线程并发请求过来时，线程可以在不同的Buffer Pool中执行自己的操作，MySQL性能就会得到很大的提升。</p>
-<p>你可以像下面这样在my.cnf中进行配置：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">[server]</span><br><span class="line">innodb_buffer_pool_size = xxx</span><br><span class="line">innodb_buffer_pool_instances = 4</span><br></pre></td></tr></table></figure>
-
-<p>意思是将总容量为xxx的buffer pool划分成4个实例。每个实例都有 xxx/4 的容量。参数 <strong><font color=Red>innodb_buffer_pool_instances</font></strong> 的最大值为64，并且想让该参数生效，<strong>innodb_buffer_pool_size</strong> 容量至少是1G。</p>
-<p>你可以像下面这样查看你的MySQL的Buffer Pool实例状态。</p>
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/09.png"></p>
-<h5 id="Buffer-Pool的真实结构"><a href="#Buffer-Pool的真实结构" class="headerlink" title="Buffer Pool的真实结构"></a>Buffer Pool的真实结构</h5><p>现实中Buffer Pool动辄就占用好几G的内存，相对于直接申请几G的内存完成扩容，MySQL有更优雅的实现方式。</p>
-<p>为了实现动态调整Buffer Pool的大小。MySQL设计了chunk 机制。</p>
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/10.png"></p>
-<p>总的来说：就是将每一个 Buffer Pool Instance 更加细力度化。将Buffer Pool拆分成更小的独立单元。</p>
-<p>每个Buffer Pool划分成多个chunk，每个chunk中维护一部分缓存页、缓存页的描述信息。同属于一个Buffer Pool的chunk共享该Buffer Pool的lru、free、flush链表。所以这种机制允许你以chunk为单位进行扩容。</p>
-<p>块大小由参数<strong>innodb_buffer_pool_chunk_size</strong>控制，默认值为 128M</p>
-<p>该参数可以像下面这样修改：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">shell&gt;</span><span class="bash"> mysqld --innodb-buffer-pool-chunk-size=134217728</span></span><br></pre></td></tr></table></figure>
-
-<p>或者通过配置文件自定义</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">innodb_buffer_pool_chunk_size=134217728</span><br></pre></td></tr></table></figure>
-
-<h5 id="查看Buffer-Pool的相关参数"><a href="#查看Buffer-Pool的相关参数" class="headerlink" title="查看Buffer Pool的相关参数"></a>查看Buffer Pool的相关参数</h5><p>执行命令：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">mysql&gt;</span><span class="bash"> show engine innodb status;</span></span><br></pre></td></tr></table></figure>
-
-<p><img data-src="/2021/07/24/MySql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/11.png"></p>
-<h5 id="如何规划你的Buffer-Pool的大小"><a href="#如何规划你的Buffer-Pool的大小" class="headerlink" title="如何规划你的Buffer Pool的大小"></a>如何规划你的Buffer Pool的大小</h5><p>推荐将Buffer Pool的总大小设置为服务器内存的 50%～60%左右</p>
-<p>BufferPool总大小 = （chunkSize * bufferPoolInstanceNum)*2</p>
-<h5 id="Buffer-Pool的预热机制"><a href="#Buffer-Pool的预热机制" class="headerlink" title="Buffer Pool的预热机制"></a>Buffer Pool的预热机制</h5><p>这种机制实际上是想让重启后的MySQL快速适应大规模的流量请求。</p>
-<p>InnoDB 在服务器关闭时为每个缓冲池保存一部分最近高频使用的页面，并在服务器启动时恢复这些页面。保存多大比例的缓存页由参数  <strong>innodb_buffer_pool_dump_pct</strong> 控制。</p>
-<p>在启动时还原缓冲池，实际上会缩短预热的时间。</p>
-<p>你可以通过下面的方式配置该参数</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 通过命令</span></span><br><span class="line">SET GLOBAL innodb_buffer_pool_dump_pct=40;</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 通过文件</span></span><br><span class="line">[mysqld]</span><br><span class="line">innodb_buffer_pool_dump_pct=40</span><br></pre></td></tr></table></figure>
-
-<p>启动参数<strong>innodb-buffer-pool-load-at-startup</strong>表示启动MySQL的时候恢复缓冲池中的状态，默认也是开启的。</p>
-<p>参数<strong>innodb_buffer_pool_dump_at_shutdown</strong>控制 MySQL关闭时保存缓冲池的状态，默认为on的状态。</p>
+<h5 id="常见的存储引擎"><a href="#常见的存储引擎" class="headerlink" title="常见的存储引擎"></a>常见的存储引擎</h5><p>MySQL 数据库区别于其他数据库的最重要的一个特点就是其插件式的表存储引擎，从上图中也可以看到，MySql支持很多种存储引擎。需要特别注意的是，<strong>存储引擎是基于表的</strong>，而不是数据库。</p>
+<p>所以每个表都可以设置为不同的引擎，以满足业务需求</p>
+<p>插件式存储引擎的好处是：能够根据具体的应用的特点选择不同的存储引擎。下面是几种 MySQL 常用的存储引擎。</p>
+<p>查看当支持的全部存储引擎</p>
+<p><img data-src="/2021/07/23/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/02.png"></p>
+<p>在 MySQL 中，不需要在整个服务器中使用同一种存储引擎，针对具体的要求，可以对每一个表使用不同的存储引擎。Support列的值表示某种引擎是否能使用：YES表示可以使用、NO表示不能使用、DEFAULT表示该引擎为当前默认的存储引擎。</p>
+<p>如果要想查看数据库默认使用哪个引擎，可以通过使用命令：</p>
+<p><img data-src="/2021/07/23/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/03.png"></p>
+<h6 id="InnoDB存储引擎"><a href="#InnoDB存储引擎" class="headerlink" title="InnoDB存储引擎"></a>InnoDB存储引擎</h6><p>InnoDB是事务型数据库的首选引擎，支持事务安全表（ACID），支持行锁定和外键，上图也看到了，InnoDB是默认的MySQL引擎。</p>
+<p>InnoDB 为 MySQL 提供了具有提交、回滚和崩溃恢复能力的 <strong>事务安全（ACID兼容）存储引擎</strong>。InnoDB 锁定在行级并且也在 SELECT 语句中提供一个类似 Oracle 的非锁定读。这些功能增加了多用户部署和性能。在 SQL 查询中，可以自由地将 InnoDB 类型的表和其他 MySQL 的表类型混合起来，甚至在同一个查询中也可以混合</p>
+<p>InnoDB 存储引擎为在 <strong>主内存中缓存数据和索引而维持它自己的缓冲池</strong>。InnoDB 将它的表和索引在一个逻辑表空间中，表空间可以包含数个文件（或原始磁盘文件）。这与 MyISAM 表不同，比如在 MyISAM 表中每个表被存放在分离的文件中。InnoDB 表可以是任何尺寸，即使在文件尺寸被限制为2GB的操作系统上</p>
+<p>InnoDB 支持 <strong>外键完整性约束</strong>，存储表中的数据时，每张表的存储都按主键顺序存放，如果没有显示在表定义时指定主键，InnoDB 会为每一行生成一个6字节的 ROWID（行 Id），并以此作为主键</p>
+<p>使用 InnoDB 存储引擎 MySQL 将在数据目录下创建一个名为 ibdata1 的 10MB 大小的 <strong>自动扩展数据文件</strong>，以及两个名为 ib_logfile0 和 ib_logfile1 的 5MB 大小的日志文件</p>
+<h6 id="MyISAM存储引擎"><a href="#MyISAM存储引擎" class="headerlink" title="MyISAM存储引擎"></a>MyISAM存储引擎</h6><p>MyISAM 基于 ISAM 存储引擎，并对其进行扩展。它是在 Web、数据仓储和其他应用环境下最常使用的存储引擎之一。<strong>MyISAM 拥有较高的插入、查询速度，但不支持事务</strong>。</p>
+<p>MyISAM 存储引擎不支持事务、表锁设计，支持全文索引，主要面向一些 OLAP 数据库应用。此外，MyISAM 存储引擎的另一个与众不同的地方是它的缓冲池 <strong>只缓存（cache）索引文件，而不缓冲数据文件</strong>，这点和大多数的数据库都非常不同。从MySQL 5.0版本开始，MyISAM 默认支持256TB 的单表数据，这足够满足一般应用需求。</p>
+<p>使用 MyISAM 引擎创建数据库，将产生3个文件。文件的名字以表名字开始，扩展名之处文件类型：<code>frm</code> 文件存储表定义、数据文件的扩展名为 <code>.MYD</code>（MYData）、索引文件的扩展名时 <code>.MYI</code>（MYIndex）</p>
+<h6 id="Memory存储引擎"><a href="#Memory存储引擎" class="headerlink" title="Memory存储引擎"></a>Memory存储引擎</h6><p>Memory存储引擎（之前称HEAP存储引擎）<strong>将表中的数据存放在内存中</strong>，如果数据库重启或发生崩溃，表中的数据都将消失。它非常适合用于存储临时数据的临时表，以及数据仓库中的纬度表。Memory存储引擎默认使用哈希索引，而不是我们熟悉的B+树索引。</p>
+<p>虽然 Memory存储引擎速度非常快，但在使用上还是有一定的限制。比如，只支持表锁，并发性能较差，并且不支持 TEXT 和 BLOB列类型。最重要的是，存储变长字段（varchar）时是按照定常字段（char）的方式进行的，因此会浪费内存。</p>
+<p>此外有一点容易被忽视，MySQL 数据库使用 Memory 存储引擎作为临时表来存放查询的中间结果集（intermediate result）。如果中间结果集大于 Memory 存储引擎表的容量设置，又或者中间结果含有 TEXT或 BLOB列类型字段，则 MySQL数据库会把其转换到 MyISAM存储引擎表而存放到磁盘中。之前提到 MyISAM不缓存数据文件，因此这时产生的临时表的性能对于查询会有损失。</p>
+<blockquote>
+<p><em><strong>同一个数据库也可以使用多种存储引擎的表。</strong></em><br><em><strong>如果一个表要求比较高的事务处理，可以选择InnoDB；</strong></em><br><em><strong>可以将查询要求比较高的表选择MyISAM存储；</strong></em><br><em><strong>如果该数据库需要一个用于查询的临时表，可以选择MEMORY存储引擎。</strong></em></p>
+</blockquote>
 ]]></content>
       <categories>
         <category>Mysql</category>
