@@ -252,12 +252,12 @@
       </tags>
   </entry>
   <entry>
-    <title>Mysql学习笔记（1）整体架构</title>
-    <url>/2021/07/23/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
+    <title>MySQL学习笔记（1）整体架构</title>
+    <url>/2021/07/23/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
     <content><![CDATA[<p><strong>如何使用 MySQL 固然重要，但是就像学习 Java那样，不了解 JVM 很多东西都寸步难行。同样的学习 MySQL 数据库前要先了解它的体系结构，这是学好 MySQL 数据库的前提。因此这里把 MySQL 的整体架构做个笔记整理一下。</strong></p>
 <span id="more"></span>
 
-<h5 id="结构总览"><a href="#结构总览" class="headerlink" title="结构总览"></a>结构总览</h5><p><img data-src="/2021/07/23/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/01.png"></p>
+<h5 id="结构总览"><a href="#结构总览" class="headerlink" title="结构总览"></a>结构总览</h5><p><img data-src="/2021/07/23/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/01.png"></p>
 <p>从上图可以发现，MySQL由以下几部分组成：</p>
 <p>MySQL驱动：</p>
 <ul>
@@ -301,10 +301,10 @@
 <p>所以每个表都可以设置为不同的引擎，以满足业务需求</p>
 <p>插件式存储引擎的好处是：能够根据具体的应用的特点选择不同的存储引擎。下面是几种 MySQL 常用的存储引擎。</p>
 <p>查看当支持的全部存储引擎</p>
-<p><img data-src="/2021/07/23/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/02.png"></p>
+<p><img data-src="/2021/07/23/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/02.png"></p>
 <p>在 MySQL 中，不需要在整个服务器中使用同一种存储引擎，针对具体的要求，可以对每一个表使用不同的存储引擎。Support列的值表示某种引擎是否能使用：YES表示可以使用、NO表示不能使用、DEFAULT表示该引擎为当前默认的存储引擎。</p>
 <p>如果要想查看数据库默认使用哪个引擎，可以通过使用命令：</p>
-<p><img data-src="/2021/07/23/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/03.png"></p>
+<p><img data-src="/2021/07/23/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%881%EF%BC%89%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84/03.png"></p>
 <h6 id="InnoDB存储引擎"><a href="#InnoDB存储引擎" class="headerlink" title="InnoDB存储引擎"></a>InnoDB存储引擎</h6><p>InnoDB是事务型数据库的首选引擎，支持事务安全表（ACID），支持行锁定和外键，上图也看到了，InnoDB是默认的MySQL引擎。</p>
 <p>InnoDB 为 MySQL 提供了具有提交、回滚和崩溃恢复能力的 <strong>事务安全（ACID兼容）存储引擎</strong>。InnoDB 锁定在行级并且也在 SELECT 语句中提供一个类似 Oracle 的非锁定读。这些功能增加了多用户部署和性能。在 SQL 查询中，可以自由地将 InnoDB 类型的表和其他 MySQL 的表类型混合起来，甚至在同一个查询中也可以混合</p>
 <p>InnoDB 存储引擎为在 <strong>主内存中缓存数据和索引而维持它自己的缓冲池</strong>。InnoDB 将它的表和索引在一个逻辑表空间中，表空间可以包含数个文件（或原始磁盘文件）。这与 MyISAM 表不同，比如在 MyISAM 表中每个表被存放在分离的文件中。InnoDB 表可以是任何尺寸，即使在文件尺寸被限制为2GB的操作系统上</p>
@@ -328,13 +328,13 @@
       </tags>
   </entry>
   <entry>
-    <title>Mysql学习笔记（2）SQL语句是如何执行的</title>
-    <url>/2021/07/25/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%882%EF%BC%89SQL%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84/</url>
+    <title>MySQL学习笔记（2）SQL语句是如何执行的</title>
+    <url>/2021/07/25/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%882%EF%BC%89SQL%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84/</url>
     <content><![CDATA[<p><strong>本文会分析下一个 sql 语句在 MySQL 中的执行流程，包括 sql 的查询在 MySQL 内部会怎么流转，sql 语句的更新是怎么完成的。</strong></p>
 <span id="more"></span>
 
 <h5 id="MySQL-基本架构概览"><a href="#MySQL-基本架构概览" class="headerlink" title="MySQL 基本架构概览"></a>MySQL 基本架构概览</h5><p>下图是 MySQL 的一个简要架构图，从下图你可以很清晰的看到用户的 SQL 语句在 MySQL 内部是如何执行的。</p>
-<p><img data-src="/2021/07/25/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%882%EF%BC%89SQL%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84/01.png"></p>
+<p><img data-src="/2021/07/25/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%882%EF%BC%89SQL%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84/01.png"></p>
 <ul>
 <li><strong>连接器：</strong>身份认证和权限相关(登录 MySQL 的时候)。</li>
 <li><strong>查询缓存：</strong>执行查询语句的时候，会先查询缓存（MySQL 8.0 版本后移除，因为这个功能不太实用）。</li>
@@ -401,7 +401,7 @@
 <li>如果 redo log 只是预提交但不是 commit 状态，这个时候就会去判断 binlog 是否完整，如果完整就提交 redo log, 不完整就回滚事务。</li>
 </ul>
 <p>这样就解决了数据一致性的问题。下图是一条sql更新的过程图:</p>
-<p><img data-src="/2021/07/25/Mysql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%882%EF%BC%89SQL%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84/02.png"></p>
+<p><img data-src="/2021/07/25/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%882%EF%BC%89SQL%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84/02.png"></p>
 ]]></content>
       <categories>
         <category>Mysql</category>
