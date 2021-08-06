@@ -27,63 +27,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo+Github 博客搭建教程</title>
-    <url>/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</url>
-    <content><![CDATA[<p><strong>最近有想法重新开始写博客了,随着年纪越来越大,需要有些沉淀的东西.16年的时候用hexo+github搭建过博客系统,于是花了点时间重新弄了一遍.我就稍稍分享一下搭建过程,当作是我这个博客的第一篇文章.</strong></p>
-<span id="more"></span>
-
-<h3 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h3><ul>
-<li>macOS Big Sur 11.4</li>
-<li>node v14.17.1</li>
-<li>npm v6.14.13</li>
-<li>git v2.30.1</li>
-</ul>
-<h3 id="安装-Hexo"><a href="#安装-Hexo" class="headerlink" title="安装 Hexo"></a>安装 Hexo</h3><p>因为本人本身是后端开发,加上系统用的是macOS,所有git和node都有提前装好,网上很多mac下安装git和node的教程,我这里就不阐述了.安装好git和node以后开始安装Hexo.找一个合适的目录来存放你的博客文件,比如我这里新建了一个blog文件夹来放置我的博客文件 ~/WorkStation/WorkStation/blog,进入blog文件夹下开始安装.</p>
-<h4 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
-
-<h4 id="初始化hexo"><a href="#初始化hexo" class="headerlink" title="初始化hexo"></a>初始化hexo</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo init</span><br></pre></td></tr></table></figure>
-
-<h4 id="安装必要组件"><a href="#安装必要组件" class="headerlink" title="安装必要组件"></a>安装必要组件</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install</span><br></pre></td></tr></table></figure>
-
-<h4 id="使用-Hexo"><a href="#使用-Hexo" class="headerlink" title="使用 Hexo"></a>使用 Hexo</h4><ul>
-<li><strong>Hexo经常会用到的命令:</strong><ul>
-<li><strong>hexo clean：</strong>清除内容</li>
-<li><strong>hexo g：生成博客</strong></li>
-<li><strong>hexo s</strong>：启动服务</li>
-<li><strong>hexo d：</strong>发布服务</li>
-</ul>
-</li>
-</ul>
-<p>Hexo命令大多可以缩写,比如 <em><strong>hexo s 、 hexo d</strong></em>  等等.更多详细命令可以参照<a href="https://hexo.io/zh-cn/docs/commands.html">官方文档</a></p>
-<h3 id="部署到Github"><a href="#部署到Github" class="headerlink" title="部署到Github"></a>部署到Github</h3><h4 id="创建Repository"><a href="#创建Repository" class="headerlink" title="创建Repository"></a>创建Repository</h4><p><strong>在自己的github上新建一个repository,这里注意一下我名字tomchangt,所以我的repository <a href="http://name要填写tomchangt.github.io/">name要填写tomchangt.github.io</a>,名字遵从 yourname.github.io格式,不过这里填错了也没关系,后面可以修改回来.</strong></p>
-<p><img data-src="/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/03.png"></p>
-<h4 id="链接github与本地"><a href="#链接github与本地" class="headerlink" title="链接github与本地"></a>链接github与本地</h4><p><strong>打开terminal,然后输入下面命令:</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git config --global user.name <span class="string">&quot;你的GitHub用户名&quot;</span></span><br><span class="line">git config --global user.email <span class="string">&quot;你的GitHub注册邮箱&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>生成密钥SSH key:</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -C <span class="string">&quot;你的GitHub注册邮箱&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>然后找到刚才生成的.ssh文件下的文件id_rsa.pub密钥,用文本编辑器打开复制里面的内容.</strong></p>
-<p><strong>打开你的github,在点击settings,在点击SSH and GPG keys,新建一个ssh,名字可以随便.然后将刚才复制id_rsa.pub里的内容复制到key里面,点击add ssh key即可.</strong></p>
-<p><img data-src="/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/05.png"></p>
-<p><img data-src="/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/06.png"></p>
-<h4 id="配置本地hexo"><a href="#配置本地hexo" class="headerlink" title="配置本地hexo"></a>配置本地hexo</h4><p><strong>在Hexo目录下的_config.yml文件下修改以下信息:</strong></p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Deployment</span></span><br><span class="line"><span class="comment"># Docs: http://hexo.io/docs/deployment.html</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">git</span></span><br><span class="line"><span class="attr">repository:</span> <span class="string">https://github.com/xxxx/xxxx.github.io.git</span> </span><br><span class="line"><span class="attr">branch:</span> <span class="string">master</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>安装hexo deployer插件</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
-
-<p><strong>执行下面命令,将hexo生成静态文件提交到github上,过一会你就可以在<a href="https://xxxxxx.github.io下看到博客内容了/">https://xxxxxx.github.io下看到博客内容了</a>.</strong></p>
-<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><p><strong>简单的就写这么多吧,其实网上Hexo+Github建博客教程太多了,我也只是记录以下我建立博客的一个过程,并且将它当作我博客的第一篇文章,算是一个新的开始吧.</strong></p>
-]]></content>
-      <categories>
-        <category>其他</category>
-      </categories>
-      <tags>
-        <tag>Hexo</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Docker常用命令</title>
     <url>/2021/07/22/Docker%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[<p><strong>平时docker使用过程中会有用到日常的一些命令，记录一下。</strong></p>
@@ -249,6 +192,63 @@
       </categories>
       <tags>
         <tag>docker</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo+Github 博客搭建教程</title>
+    <url>/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</url>
+    <content><![CDATA[<p><strong>最近有想法重新开始写博客了,随着年纪越来越大,需要有些沉淀的东西.16年的时候用hexo+github搭建过博客系统,于是花了点时间重新弄了一遍.我就稍稍分享一下搭建过程,当作是我这个博客的第一篇文章.</strong></p>
+<span id="more"></span>
+
+<h3 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h3><ul>
+<li>macOS Big Sur 11.4</li>
+<li>node v14.17.1</li>
+<li>npm v6.14.13</li>
+<li>git v2.30.1</li>
+</ul>
+<h3 id="安装-Hexo"><a href="#安装-Hexo" class="headerlink" title="安装 Hexo"></a>安装 Hexo</h3><p>因为本人本身是后端开发,加上系统用的是macOS,所有git和node都有提前装好,网上很多mac下安装git和node的教程,我这里就不阐述了.安装好git和node以后开始安装Hexo.找一个合适的目录来存放你的博客文件,比如我这里新建了一个blog文件夹来放置我的博客文件 ~/WorkStation/WorkStation/blog,进入blog文件夹下开始安装.</p>
+<h4 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
+
+<h4 id="初始化hexo"><a href="#初始化hexo" class="headerlink" title="初始化hexo"></a>初始化hexo</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo init</span><br></pre></td></tr></table></figure>
+
+<h4 id="安装必要组件"><a href="#安装必要组件" class="headerlink" title="安装必要组件"></a>安装必要组件</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用-Hexo"><a href="#使用-Hexo" class="headerlink" title="使用 Hexo"></a>使用 Hexo</h4><ul>
+<li><strong>Hexo经常会用到的命令:</strong><ul>
+<li><strong>hexo clean：</strong>清除内容</li>
+<li><strong>hexo g：生成博客</strong></li>
+<li><strong>hexo s</strong>：启动服务</li>
+<li><strong>hexo d：</strong>发布服务</li>
+</ul>
+</li>
+</ul>
+<p>Hexo命令大多可以缩写,比如 <em><strong>hexo s 、 hexo d</strong></em>  等等.更多详细命令可以参照<a href="https://hexo.io/zh-cn/docs/commands.html">官方文档</a></p>
+<h3 id="部署到Github"><a href="#部署到Github" class="headerlink" title="部署到Github"></a>部署到Github</h3><h4 id="创建Repository"><a href="#创建Repository" class="headerlink" title="创建Repository"></a>创建Repository</h4><p><strong>在自己的github上新建一个repository,这里注意一下我名字tomchangt,所以我的repository <a href="http://name要填写tomchangt.github.io/">name要填写tomchangt.github.io</a>,名字遵从 yourname.github.io格式,不过这里填错了也没关系,后面可以修改回来.</strong></p>
+<p><img data-src="/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/03.png"></p>
+<h4 id="链接github与本地"><a href="#链接github与本地" class="headerlink" title="链接github与本地"></a>链接github与本地</h4><p><strong>打开terminal,然后输入下面命令:</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git config --global user.name <span class="string">&quot;你的GitHub用户名&quot;</span></span><br><span class="line">git config --global user.email <span class="string">&quot;你的GitHub注册邮箱&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>生成密钥SSH key:</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -C <span class="string">&quot;你的GitHub注册邮箱&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>然后找到刚才生成的.ssh文件下的文件id_rsa.pub密钥,用文本编辑器打开复制里面的内容.</strong></p>
+<p><strong>打开你的github,在点击settings,在点击SSH and GPG keys,新建一个ssh,名字可以随便.然后将刚才复制id_rsa.pub里的内容复制到key里面,点击add ssh key即可.</strong></p>
+<p><img data-src="/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/05.png"></p>
+<p><img data-src="/2021/07/21/Hexo-Github-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/06.png"></p>
+<h4 id="配置本地hexo"><a href="#配置本地hexo" class="headerlink" title="配置本地hexo"></a>配置本地hexo</h4><p><strong>在Hexo目录下的_config.yml文件下修改以下信息:</strong></p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Deployment</span></span><br><span class="line"><span class="comment"># Docs: http://hexo.io/docs/deployment.html</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">git</span></span><br><span class="line"><span class="attr">repository:</span> <span class="string">https://github.com/xxxx/xxxx.github.io.git</span> </span><br><span class="line"><span class="attr">branch:</span> <span class="string">master</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>安装hexo deployer插件</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行下面命令,将hexo生成静态文件提交到github上,过一会你就可以在<a href="https://xxxxxx.github.io下看到博客内容了/">https://xxxxxx.github.io下看到博客内容了</a>.</strong></p>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><p><strong>简单的就写这么多吧,其实网上Hexo+Github建博客教程太多了,我也只是记录以下我建立博客的一个过程,并且将它当作我博客的第一篇文章,算是一个新的开始吧.</strong></p>
+]]></content>
+      <categories>
+        <category>其他</category>
+      </categories>
+      <tags>
+        <tag>Hexo</tag>
       </tags>
   </entry>
   <entry>
