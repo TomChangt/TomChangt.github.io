@@ -747,6 +747,192 @@
       </tags>
   </entry>
   <entry>
+    <title>MySQL学习笔记（7）MySQL中的索引</title>
+    <url>/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/</url>
+    <content><![CDATA[<p><strong>作为一个软件开发工程师，你对数据库肯定再熟悉不过了。作为主流的数据存储系统，它在我们的业务开发中，有着举足轻重的地位。在工作中，为了加速数据库中数据的查找速度，我们常用的处理思路是，对表中数据创建索引。但是我们是否思考过：数据库索引是如何实现的呢？底层使用的是什么数据结构和算法呢？</strong></p>
+<span id="more"></span>
+
+<h5 id="索引你真正了解吗？"><a href="#索引你真正了解吗？" class="headerlink" title="索引你真正了解吗？"></a>索引你真正了解吗？</h5><blockquote>
+<p>正确的创建合适的索引是提升数据库查询性能的基础</p>
+</blockquote>
+<h6 id="索引是什么"><a href="#索引是什么" class="headerlink" title="索引是什么?"></a>索引是什么?</h6><p>索引是为了加速对表中数据行的检索而创建的一种分散存储的 数据结构。</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/01.png"></p>
+<h6 id="为什么要用索引"><a href="#为什么要用索引" class="headerlink" title="为什么要用索引"></a>为什么要用索引</h6><ul>
+<li><p>索引能极大的减少存储引擎需要扫描的数据量</p>
+</li>
+<li><p>索引可以把所及IO变成顺序IO</p>
+</li>
+<li><p>索引可以帮助我们在进行分组、排序等操作的时候，避免使用临时表</p>
+</li>
+</ul>
+<h5 id="为什么是B-树"><a href="#为什么是B-树" class="headerlink" title="为什么是B+树"></a>为什么是B+树</h5><blockquote>
+<p>MySQL 为什么要选用 B+Tree 的数据结构来作为它的索引机制？接下里我们一步一步来推敲。</p>
+</blockquote>
+<h6 id="二叉查找树（Binary-Search-Tree）"><a href="#二叉查找树（Binary-Search-Tree）" class="headerlink" title="二叉查找树（Binary Search Tree）"></a>二叉查找树（Binary Search Tree）</h6><p>首先，要提高数据检索的效率，我们第一个考虑的数据结构就是二叉查找树。</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/02.png"></p>
+<p><strong>二叉查找树</strong>（英语：Binary Search Tree），也称为<strong>二叉搜索树</strong>、<strong>有序二叉树</strong>（ordered binary tree）或<strong>排序二叉树</strong>（sorted binary tree），是指一棵空树或者具有下列性质的二叉树：</p>
+<ol>
+<li>若任意节点的左子树不空，则左子树上所有节点的值均小于它的根节点的值；</li>
+<li>若任意节点的右子树不空，则右子树上所有节点的值均大于它的根节点的值；</li>
+<li>任意节点的左、右子树也分别为二叉查找树；</li>
+<li>没有键值相等的节点。</li>
+</ol>
+<p>假设该二叉查找树保存的是 id 索引，我们要检索一条 id=8 的数据，它会一个节点一个节点比对，首先把根节点（第一条插入的数据就是根节点）加载到内存中比对，8比10要小，这个时候会找10左边的节点，再把5加载到内存中比对，5比8要小，继续找5右边的节点，最后找到8这个节点。</p>
+<p><strong>二叉查找树的问题</strong></p>
+<p>假如我们生成了如下图所示的二叉树：</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/03.png"></p>
+<p>我们每次在插入新的节点的时候，数据都比上一个插入的节点大，这样就形成了如上图所示的链表的关系，当我们要去检索一条 id 等于33的时候，它检索的效率和全表扫描一样了，没有任何优化。</p>
+<p>所以二叉查找树检索的效率取决于二叉查找树数据的分布，当二叉查找树数据的分布相当于一个线性链表的时候，它的数据检索效率将会非常低。</p>
+<p><strong>平衡二叉搜索树（Balanced Binary Tree）</strong></p>
+<p><strong>平衡二叉搜索树</strong>（英语：Balanced Binary Tree）是一种结构平衡的二叉搜索树，即叶节点高度差的绝对值不超过1，并且左右两个子树都是一棵平衡二叉树。它能在 O(log n) 内完成插入、查找和删除操作，最早被发明的平衡二叉搜索树为AVL树。</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/04.png"></p>
+<p>当平衡二叉查找树发生节点变更时，基于每个节点的平衡因子，通过一次或多次左旋和右旋来达到树新的平衡。</p>
+<p>磁盘块是一个节点在硬盘中的保存位置，每个节点有三块数据内容：关键字、数据区、子节点引用。</p>
+<ul>
+<li>关键字：比如我们用 ID 作为索引，那这里保存的就是 ID 内容</li>
+<li>数据区：可以是数据的磁盘位置，可以是真正的数据内容</li>
+<li>子节点引用：比如跟节点10的 P1 引用指向的是5节点，P2 引用指向的是20节点，基于 P1 和 P2 就可以通过顺序 IO 的方式加载子节点磁盘块的内容到内容中</li>
+</ul>
+<p><strong>平衡二叉搜索树的问题</strong></p>
+<p><strong>太深了</strong></p>
+<p>数据处的深度决定着它的 IO 操作次数，IO 操作耗时大。比如要加载 ID 等于8的数据，需要3次 IO 操作，6条数据就就需要3次 IO 操作，当我们的数据量达到千万级别的时候，这颗平衡二叉查找树会很高，数据检索时的 IO 操作次数会更多。</p>
+<p><strong>太小了</strong></p>
+<p>每一个磁盘块（节点/页）保存的数据量太小了，没有很好的利用操作磁盘 IO 的数据交换特性，也没有利用好磁盘 IO 的预读能力（空间局部性原理），从而带来平凡的 IO 操作</p>
+<ul>
+<li>磁盘 IO 的数据交换特性：一次 IO 操作，交换的数据是4K（一页）</li>
+<li>磁盘IO 的预读能力：操作系统在做 IO 操作的时候，一次不止加载4K的数据量，它会利用空间局部性原理，加载更多的数据，MySQL 的一页数据是16K。</li>
+</ul>
+<p>多路平衡查找树（B-Tree）</p>
+<p>m 阶 B-Tree 满足以下条件：</p>
+<ul>
+<li>每个节点最多拥有 m 个子树</li>
+<li>根节点至少有2个子树</li>
+<li>分支节点至少拥有 m/2 颗子树（除根节点和叶子节点外都是分支节点）</li>
+<li>所有叶子节点都在同一层、每个节点最多可以有 m-1 个key，并且以升序排列</li>
+</ul>
+<p>下图是一个2-3 B树的结构</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/05.png"></p>
+<p>对比平衡二叉查找树，同样最多三次 IO 操作，2-3 B树最多可以检索到的数据量是22条数据，而平衡二叉查找树最多可以检索到的数据量是8条，当多路平衡二叉查找树的路数越多，在 IO 操作次数相同的情况下，它能检索的数据量越多。</p>
+<p><strong>为什么需要合理设置MySQL的字段长度?</strong></p>
+<p>比如我们用 MySQL 页的定义，一次 IO 操作会加载16k的数据，用 int 类型的 id 做索引，int 类型的数据暂用的空间大小是4bit，假设再冗余4bit作为引用、数据区的大小，这样 MySQL 的一页数据能存放 16*1024/8=2048 个关键字。</p>
+<p>所以我们在定义 MySQL 字段类型的时候，尽量要精简一些，字段的长度要设定的比较合理，能短则短，否则如果我们把这个字段作为索引，它会影响 B-Tree 的路数，进而影响索引的检索效率。</p>
+<p><strong>为什么MySQL的索引不宜建多？</strong></p>
+<p>多路平衡二叉查找树为了保证树的绝对平衡，会在树中节点变更的时候，采用分裂、合并的操作来维持树的绝对平衡。</p>
+<p>所以我们不能建过多的索引，会拖慢 MySQL 的新增、更新、删除操作，因为每次数据变更，都会对所有的索引数据进行节点的变更。</p>
+<p><strong>加强版多路平衡查找树（B+Tree）</strong></p>
+<p>B+Tree 是在 B-Tree 基础上的一种优化，使其更适合实现外存储索引结构，InnoDB 存储引擎就是用 B+Tree 实现其索引结构。</p>
+<p>从 B-Tree 结构图中可以看到每个节点中不仅包含数据的 key 值，还有 data 值。而每一个页的存储空间是有限的，如果 data 数据较大时将会导致每个节点（即一个页）能存储的 key 的数量很小，当存储的数据量很大时同样会导致B-Tree 的深度较大，增大查询时的磁盘 I/O 次数，进而影响查询效率。在 B+Tree 中，所有数据记录节点都是按照键值大小顺序存放在同一层的叶子节点上，而非叶子节点上只存储 key 值信息，这样可以大大加大每个节点存储的 key 值数量，降低 B+Tree 的高度。</p>
+<p><strong>B+Tree 相对于 B-Tree 有几点不同：</strong></p>
+<ul>
+<li>B+Tree 节点关键字搜索采用闭合区间</li>
+<li>B+Tree 非叶节点不保存数据相关信息，只保存关键字和子节点的引用</li>
+<li>B+Tree 关键字对应的数据保存在叶子节点中</li>
+<li>B+Tree 叶子节点是顺序排列的，并且相邻节点具有顺序引用的关系</li>
+</ul>
+<p>下面是一个 B+Tree 的数据结构图：</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/06.png"></p>
+<p><strong>为什么选用 B+Tree？</strong></p>
+<ol>
+<li><p><strong>B+Tree 是B-树的变种（PLUS版）多路绝对平衡查找树，它拥有B-树的优势。</strong></p>
+</li>
+<li><p><strong>B+Tree 扫库、表能力更强。</strong></p>
+<blockquote>
+<p>如果要从 B-Tree 中扫描表数据的话，基本要把整棵树都要扫描一遍，因为每个节点都存在数据区。B+Tree 就不需要扫描整棵树，只需要扫描叶子节点就可以了。</p>
+</blockquote>
+</li>
+<li><p><strong>B+Tree 的磁盘读写能力更强。</strong></p>
+<blockquote>
+<p>B+Tree 的节点上是不保存数据的，那么它保存的关键字就更多，这样一次 IO 操作，加载的关键字就更多，所以它的磁盘读写能力更强。</p>
+</blockquote>
+</li>
+<li><p><strong>B+Tree 的排序能力更强。</strong></p>
+<blockquote>
+<p>B+Tree 的叶子节点天然就是顺序存放的</p>
+</blockquote>
+</li>
+<li><p><strong>B+Tree 的查询效率更加稳定。</strong></p>
+<blockquote>
+<p>比如我们从上图的 B-Tree 中查询一条 id 等于8的数据需要经过两次 IO 操作，查询一条 id 等于3的数据需要经过三次 IO 操作，而从上图的 B+Tree 中只有叶子节点才保存数据，所以查询任何数据都需要经过三次 IO 操作。 所以 B+Tree 的查询效率更加稳定。</p>
+</blockquote>
+</li>
+</ol>
+<h5 id="MySQL-B-Tree-索引的体现形式"><a href="#MySQL-B-Tree-索引的体现形式" class="headerlink" title="MySQL B+Tree 索引的体现形式"></a>MySQL B+Tree 索引的体现形式</h5><h6 id="MySQL-中-B-Tree-索引体现形式-MyISAM"><a href="#MySQL-中-B-Tree-索引体现形式-MyISAM" class="headerlink" title="MySQL 中 B+Tree 索引体现形式 - MyISAM"></a>MySQL 中 B+Tree 索引体现形式 - MyISAM</h6><p>MyISAM 的数据和索引是分别存储的，在创建好表结构并且指定搜索引擎为 MyISAM 之后，会在数据目录生成3个文件，分别是 table_name.frm（表结构文件），table_name.MYD（数据保存文件），table_name.MYI（索引保存文件）。</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/07.png"></p>
+<p>例如上图的 teacher 表，两个文件分别保存了数据及索引，由于 B+Tree 中只有叶子节点保存数据区，在 MyISAM 中，数据区中保存的是数据的引用地址，比如说 id 为101的数据信息所保存到物理磁盘地址为 0x123456，当扫描到这个指针位置，就可以通过这个磁盘指针将数据加载出来。</p>
+<p>在 MyISAM 中，name 索引和 ID 索引是一样的，叶子节点也是保存它指向的磁盘位置指针，他们是平级的。</p>
+<h6 id="MySQL-中-B-Tree-索引体现形式-InnoDB"><a href="#MySQL-中-B-Tree-索引体现形式-InnoDB" class="headerlink" title="MySQL 中 B+Tree 索引体现形式 - InnoDB"></a>MySQL 中 B+Tree 索引体现形式 - InnoDB</h6><p>InnoDB 的数据和索引是存储在一起的，在创建好表结构并且指定搜索引擎为 InnoDB 之后，会在数据目录生成2个文件，分别是 table_name.frm（表结构文件），table_name.idb（数据与索引保存文件）。</p>
+<p>InnoDB B+Tree 的体现是以主键为索引来组织数据的存储，当我们没有显示的建立主键索引的时候，搜索引擎会隐式的生成一个6位的 int 型的索引来作为它的主键索引以组织数据的存储。</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/08.png"></p>
+<p>数据库表行中数据的物理顺序与键值的逻辑（索引）顺序相同，InnoDB 就是以聚集索引来组织数据的存储的，在叶子节点上，保存了数据的所有信息。如果这个时候建立了 name 字段的索引，它是如何组织数据的，如下图所示：</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/09.png"></p>
+<p>会产生一个辅助索引，即 name 字段的索引，而此刻叶子节点上所保存的数据为 聚集索引（ID索引）的关键字的值，基于辅助索引找到 ID 索引的值，再通过 ID 索引区获取最终的数据。</p>
+<p>这个做法的好处是在于产生数据迁移的时候只要 ID 没发生变法，那么辅助索引不需要重新生成，不这么做的话，如果存储的是磁盘地址的话，在数据迁移后所有辅助索引都需要重新生成。</p>
+<h5 id="索引补充知识"><a href="#索引补充知识" class="headerlink" title="索引补充知识"></a>索引补充知识</h5><p><strong>列的离散性 count(distinct col) : count(col)</strong></p>
+<p>比如下面的数据，找出离散性最好的列？可以发现 name 的离散性是最好的。</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/10.png"></p>
+<p>列的离散性的计算公式是：count(distinct col) : count(col)，比例越大，离散性就越好</p>
+<p>结论：列的离散性越好，列的选择性就越好。</p>
+<p>如何理解列的选择性呢？比如对性别字段做索引，假设男为1，女为0，就会生成如下索引树：</p>
+<p><img data-src="/2021/08/04/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%887%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/11.png"></p>
+<p>这个时候要搜索女的数据，从根节点出发，发现可以选择的线路太多了，优化器觉得既然要搜索这么多数据，还不如全表扫描，不利于 MySQL 数据检索的性能。</p>
+<p><strong>最左匹配原则</strong></p>
+<p>对索引中关键字进行计算（比对），一定是从左往右依次进行，且不可跳过。</p>
+<p>这里需要说明一点，字符串也可以进行大小比对，在我们创建库、表的时候需要选择字符集及排序规则，都是有用的，它会影响字符串的排序。</p>
+<p>比如一棵 B+tree 中的根节点为一个字符串 abc ，那么我现在要搜索一个为 adc 的索引关键字的数据，根节点 abc 的 ASCII 码为 97 98 99，而 adc 的为 97 100 99，那么和3个数字会逐一比对，且100&gt;98，接下去一定会走右子树。</p>
+<p><strong>联合索引</strong> </p>
+<ul>
+<li>单列索引：节点中关键字[name]</li>
+<li>联合索引：节点中关键字[name,phoneNum]</li>
+</ul>
+<p>单列索引是特殊的联合索引</p>
+<p>联合索引列选择原则：</p>
+<ol>
+<li>经常用的列优先【最左匹配原则】</li>
+<li>选择性（离散度）高的列优先【离散度高原则】</li>
+<li>宽度小的列优先【最少空间原则】</li>
+</ol>
+<p><strong>案例一</strong></p>
+<p>公司经排查发现最常用的 SQL 语句，如何在 users 表上建立索引？</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> name <span class="operator">=</span> ? ;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> name <span class="operator">=</span> ? <span class="keyword">and</span> phoneNum <span class="operator">=</span> ?;</span><br></pre></td></tr></table></figure>
+
+<p>解决方案：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> index idx_name_phoneNum <span class="keyword">on</span> users(name, phoneNum);</span><br><span class="line"><span class="comment">-- 根据最左原则，下面这个联合索引适用于以上2个sql语句</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>案例二</strong></p>
+<p>登录业务需要执行如下 SQL，<strong>如何在 users 表上建立索引？</strong></p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> uid, login_time <span class="keyword">from</span> t_user <span class="keyword">where</span> login_name<span class="operator">=</span>? <span class="keyword">and</span> passwd<span class="operator">=</span>?</span><br></pre></td></tr></table></figure>
+
+<p>可以建立 (login_name, passwd) 的联合索引。<strong>为什么呢？</strong></p>
+<p>联合索引能够满足最左侧查询需求，例如 (a, b, c) 三列的联合索引，能够加速 a | (a, b) | (a, b, c) 三组查询需求。这也就是为何不建立 (passwd, login_name) 这样联合索引的原因，业务上几乎没有 passwd 的单条件查询需求，而有很多 login_name 的单条件查询需求。 </p>
+<p><strong>如下查询能否命中</strong> <strong>(login_name, passwd) 这个联合索引？</strong></p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> uid, login_time <span class="keyword">from</span> t_user <span class="keyword">where</span> passwd<span class="operator">=</span>? <span class="keyword">and</span> login_name<span class="operator">=</span>?</span><br></pre></td></tr></table></figure>
+
+<p>答案是可以，最左侧查询需求，并不是指 SQL 语句的写法必须满足索引的顺序（这是很多朋友的误解），应该是 MySQL 对传入的 SQL 执行了优化。</p>
+<p><strong>覆盖索引</strong></p>
+<p>如果查询列可通过索引节点中的关键字直接返回，则该索引称之为覆盖索引。</p>
+<p>覆盖索引可减少数据库 IO，将随机 IO 变为顺序 IO，可提高查询性能。</p>
+<p><strong>总结</strong></p>
+<ol>
+<li>索引列不允许为空</li>
+<li>索引列的数据长度能少则少</li>
+<li>索引一定不是越多越好，越全越好，一定是建合适的</li>
+<li>匹配列前缀可用到索引 like 9999%，like %9999%、like %9999 用不到索引</li>
+<li>where 条件中 not in 和 &lt;&gt; 操作无法使用索引</li>
+<li>匹配范围值，order by 也可用到索引</li>
+<li>多用指定列查询，只返回自己想到的数据列，少用 select *</li>
+<li>联合索引中如果不是按照索引最左列开始查找，无法使用索引</li>
+<li>联合索引中精确匹配最左前列并范围匹配另外一列可以用到索引</li>
+<li>联合索引中如果查询中有某个列的范围查询，则其右边的所有列都无法使用索引</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Mysql</category>
+      </categories>
+      <tags>
+        <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MySQL学习笔记（6）MySQL中的日志</title>
     <url>/2021/08/03/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%886%EF%BC%89MySQL%E4%B8%AD%E7%9A%84%E6%97%A5%E5%BF%97/</url>
     <content><![CDATA[<p><strong>分享下MySQL的undo log、redo log、bin log</strong></p>
